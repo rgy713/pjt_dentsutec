@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DENTSU TEC</title>
+
+    <link rel="stylesheet" href="{% static 'css/jquery-jvectormap-2.0.3.css' %}" type="text/css"/>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+
+    <link href="{% static 'css/swiper.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/frontend.css' %}" rel="stylesheet">
+
+</head>
+<body>
+<div class="main-content">
+    <div class="logo_container">
+        <div class="logo_container_content pos-rel">
+            <div class="back_button pos-abs" onclick="javascript:window.history.back()">◀ Back</div>
+            <a href="{% url 'index' %}"><div class="logo_ico"><img src="{% static 'images/logo.png' %}"></div></a>
+            <div class="logo_controls pos-abs">
+                <a href="{% url 'index' %}" class="setting_button left">Presentation</a>
+                <a href="{% url 'admin_index' %}" class="setting_button left">Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="logo_label_container pos-rel">
+        <div class="logo_title pos-abs">Project</div>
+        <div class="logo_label_content pos-rel">
+            <div class="pos-abs right">PROMO TEC ASIA NETWORK</div>
+        </div>
+        <div class="logout_button pos-abs">
+            <a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Logout</a>
+        </div>
+    </div>
+
+    <div id="detail_contents">
+        <div id="detail_info_title" class="bottom-border"></div>
+        <div id="detail_info_container" class="left">
+            <div id="detail_info_label_client" class="detail_info_label">client</div>
+            <div id="detail_info_client" class="bottom-border full-width textEllipsis"></div>
+            <div class="detail_info_label">project term</div>
+            <div id="detail_info_date" class="bottom-border"></div>
+            <div class="detail_info_label">region</div>
+            <div id="detail_info_region" class="bottom-border"></div>
+            <div class="detail_info_label">category</div>
+            <div id="detail_info_category" class="bottom-border"></div>
+            <div class="detail_info_label">outline</div>
+            <div id="detail_info_outline" class="bottom-border yOverflow"></div>
+            <div class="detail_info_label">result</div>
+            <div id="detail_info_result" class="yOverflow"></div>
+        </div>
+        <div id="detail_media_container" class="left top_v_menu_container">
+
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="media_container" tabindex="-1" role="dialog" aria-labelledby="country_creater" aria-hidden="true">
+        <div class="modal-dialog modal-md" style="z-index: 1050;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="clearfix margin-bottom-10">
+                        <div class="row margin-bottom-10">
+                            <div class="col-sm-12" id="media_container">
+                                <img id="media_image_src" class="full-width" src="" alt="IMAGE">
+                                <iframe id="media_video_src" class="full-width" height="480">
+                                </iframe>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <a class="left media-list-button" href="javascript:meda_prev(true);"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
+                                <a class="right media-list-button" href="javascript:meda_prev();"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+<!--swiper js-->
+<script type="text/javascript" src="{% static 'js/swiper.jquery.min.js' %}"></script>
+
+<script>
+    var media_list
+
+    $(document).ready(function () {
+        $.ajax({
+            type: "GET",
+            url: "{% url 'ws_get_project' %}",
+            data: {
+                id: '{{ project_idx }}'
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    var project_info = result["content"];
+                    $("#detail_info_title").html(project_info.project_name);
+                    $("#detail_info_client").html(project_info.client);
+                    $("#detail_info_date").html(project_info.start_date + " ~ " + project_info.end_date);
+                    $("#detail_info_region").html(project_info.country);
+                    $("#detail_info_category").html(project_info.category);
+                    $("#detail_info_outline").html(project_info.outline);
+                    $("#detail_info_result").html(project_info.result);
+                }
+
+            }
+        });
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_media' %}",
+            data: {
+                project_idx: '{{ project_idx }}'
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    media_list = result["content"];
+                    media_list.forEach(function (media, number) {
+                        var image_url = media.type == 2 ? media.thumb :
+                            media.type == 1 ? media.url : '{{ MEDIA_URL }}images/' + media.url;
+                        $("#detail_media_container").append(
+                            '<a class="detail_media_item left" href="javascript:void(0);" onclick="javascript:callMedia(' + number + ');">' +
+                                "<div class=\"media_thumb_container pos-rel\" id=\"media_" + number + "\" style=\"background: url('" + image_url + "') no-repeat center; background-size: contain;\"></div>" +
+                            '</a>'
+                        )
+
+                        if (media.type == 2) {
+                            $("#media_" + number).append(
+                                '<img class="video_player_ico pos-abs" src="{% static 'images/player.png' %}" alt="IMAGE">'
+                            );
+                        }
+                    });
+                }
+
+            }
+        });
+    });
+
+    var current_media_index = 0;
+
+    function callMedia(index) {
+        current_media_index = index;
+
+        var media = media_list[index]
+
+        //$("#media_title").html(media.title);
+
+        var image_url = media.type == 2 ? media.thumb :
+            media.type == 1 ? media.url : '{{ MEDIA_URL }}images/' + media.url;
+
+        if (media.type == 2) {
+            $("#media_video_src").show();
+            var media_url = media.url.replace("https://www.youtube.com/watch?v=", "https://www.youtube.com/embed/");
+            media_url = media_url.replace("https://youtu.be/", "https://www.youtube.com/embed/");
+            $("#media_video_src").attr("src", media_url)
+            $("#media_image_src").hide();
+        }
+        else {
+            $("#media_image_src").show();
+            $("#media_image_src").attr("src", image_url);
+            $("#media_video_src").hide();
+        }
+
+        $("#media_container").modal('show');
+    }
+
+    function meda_prev(p_prev) {
+        var index = current_media_index + (p_prev ? -1 : 1);
+        if (index < 0) index = media_list.length - 1;
+        if (index >= media_list.length) index = 0;
+        callMedia(index)
+    }
+
+    $('#media_container').on('hidden.bs.modal', function () {
+        $("#media_image_src").attr("src", "")
+        $("#media_video_src").attr("src", "")
+    })
+
+</script>
+</body>
+</html>

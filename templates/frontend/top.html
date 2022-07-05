@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DENTSU TEC</title>
+
+    <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/swiper.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/frontend.css' %}" rel="stylesheet">
+
+</head>
+<body>
+<div class="main-content">
+    <div class="logo_container">
+        <div class="logo_container_content pos-rel">
+            <div class="back_button pos-abs" onclick="javascript:window.history.back()">◀ Back</div>
+            <div class="logo_ico"><img src="{% static 'images/logo.png' %}"></div>
+            <div class="logo_controls pos-abs">
+                <a href="{% url 'admin_index' %}" class="setting_button left">Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="logo_label_container pos-rel">
+        <div class="logo_title pos-abs">Presentation</div>
+        <div class="logo_label_content center">
+            <div>PROMO TEC ASIA NETWORK</div>
+        </div>
+        <div class="logout_button pos-abs">
+            <a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Logout</a>
+        </div>
+    </div>
+
+    <div id="top_contents">
+        <div id="top_region_category_container" class="left full-hight">
+            <div id="top_region_container">
+                <div class="top_container_label">Region</div>
+                <div id="top_region_menu_container" class="top_v_menu_container">
+                </div>
+            </div>
+            <div id="top_category_container">
+                <div class="top_container_label">Category</div>
+                <div id="top_category_menu_container" class="top_v_menu_container">
+                </div>
+                <a href="javascript:void(0);" class="submit_button" id="top_ok_button">OK</a>
+            </div>
+{#            <div id="top_company_container">#}
+{#                <div class="top_container_label">Additional Select</div>#}
+{#                <div id="top_company_selects" class="center">#}
+{#                  <select class="form-control" id="segment"></select>#}
+{#                  <select class="form-control" id="company"></select>#}
+{#                  <a href="javascript:void(0);" class="submit_button" id="top_ok_button">OK</a>#}
+{#                </div>#}
+{#            </div>#}
+        </div>
+        <div id="top_feature_container" class="left full-hight">
+            <div class="top_container_label">FEATURE</div>
+            <div class="top_feature_list_container top_v_menu_container" id="top_recent_list_container">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+
+<!--swiper js-->
+<script type="text/javascript" src="{% static 'js/swiper.jquery.min.js' %}"></script>
+
+<script>
+    var got_countries = false, got_categories = false, got_companies = false;
+
+    var exclude_country_list = [];
+    var exclude_category_list = [];
+    var select_segment = "0";
+    var select_company = "0";
+
+    $(document).ready(function () {
+        load_filter();
+
+        $("#top_ok_button").click(function () {
+            list_media();
+        });
+
+        $("#segment").change(function () {
+            //list_company();
+            list_segment_client();
+        })
+
+        $('#segment').append('<option value="0">All Industries</option>');
+        $('#segment').val("0");
+        $('#company').append('<option value="0">All Companies</option>');
+        $('#company').val("0");
+
+        $.ajax({
+            type: "GET",
+            url: '{% url 'ws_list_country' %}',
+            timeout: 2000,
+            beforeSend: function () {
+                got_countries = false;
+            },
+            complete: function () {
+                got_countries = true;
+                if (got_countries && got_categories && got_companies) {
+                    list_media();
+                }
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    var country_list = result["content"];
+                    country_list.forEach(function (country, number) {
+                        if (country.country_id == "TOKYO" )
+                            return;
+
+                        $("#top_region_menu_container").append(
+                            '<div class="onoffswitch_container left">' +
+                                '<div class="onoffswitch left">'+
+                                    '<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox region_checkbox" id="region_' + country.id + '" checked>' +
+                                    '<label class="onoffswitch-label" for="region_' + country.id + '">' +
+                                        '<span class="onoffswitch-inner"></span>' +
+                                        '<span class="onoffswitch-switch"></span>' +
+                                    '</label>' +
+                                '</div>' +
+                                '<span class="onoffswitch-string left">' + country.country_name + '</span>' +
+                            '</div>'
+                        );
+
+                        exclude_country_list.forEach(function (value, index) {
+                            $("#region_" + value).prop( "checked", false );
+                        })
+                    });
+                }
+            }
+        });
+
+        $.ajax({
+            type: "GET",
+            url: '{% url 'ws_list_category' %}',
+            timeout: 2000,
+            beforeSend: function () {
+                got_categories = false;
+            },
+            complete: function () {
+                got_categories = true;
+                if (got_countries && got_categories && got_companies) {
+                    list_media();
+                }
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    var category_list = result["content"];
+                    category_list.forEach(function (category, number) {
+                        $("#top_category_menu_container").append(
+                            '<div class="onoffswitch_container left">' +
+                                '<div class="onoffswitch left">'+
+                                    '<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox category_checkbox" id="category_' + category.id + '" checked>' +
+                                    '<label class="onoffswitch-label" for="category_' + category.id + '">' +
+                                        '<span class="onoffswitch-inner"></span>' +
+                                        '<span class="onoffswitch-switch"></span>' +
+                                    '</label>' +
+                                '</div>' +
+                                '<span class="onoffswitch-string left">' + category.category_name + '</span>' +
+                            '</div>'
+                        );
+                    });
+
+                    exclude_category_list.forEach(function (value, index) {
+                        $("#category_" + value).prop( "checked", false );
+                    })
+                }
+
+            }
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'ws_list_segment' %}",
+
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var segment_list = result["content"];
+
+                    $('#segment').empty();
+                    $('#segment').append('<option value="0">All Industries</option>');
+                    segment_list.forEach(function (value, index) {
+                        $('#segment').append('<option value="' + value.id + '">' + value.segment_name + '</option>');
+                    })
+                    $('#segment').val(select_segment);
+                    //list_company(true);
+                    list_segment_client(true);
+                }
+            }
+        });
+    });
+
+    function list_company(auto_list_media) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_company' %}",
+            data: {
+              segment: $('#segment').val()
+            },
+            beforeSend: function () {
+                got_companies = false;
+            },
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var company_list = result["content"];
+
+                    $('#company').empty();
+                    $('#company').append('<option value="0">All Companies</option>');
+                    company_list.forEach(function (value, index) {
+                        $('#company').append('<option value="' + value.id + '">' + value.company_name + '</option>');
+                    })
+                    if (auto_list_media) {
+                        $('#company').val(select_company);
+                    }
+                    else {
+                        $('#company').val("0");
+                    }
+                }
+
+                got_companies = true;
+                if (got_countries && got_categories && got_companies && auto_list_media) {
+                    list_media();
+                }
+            }
+        });
+    }
+
+    function list_client(auto_list_media) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_client' %}",
+            data: {
+              segment: $('#segment').val(),
+            },
+            beforeSend: function () {
+                got_companies = false;
+            },
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var client_list = result["content"];
+
+                    $('#company').empty();
+                    $('#company').append('<option value="0">All Clients</option>');
+                    client_list.forEach(function (value, index) {
+                        $('#company').append('<option value="' + value.id + '">' + value.client_name + '</option>');
+                    })
+                    if (auto_list_media) {
+                        $('#company').val(select_company);
+                    }
+                    else {
+                        $('#company').val("0");
+                    }
+                }
+
+                got_companies = true;
+                if (got_countries && got_categories && got_companies && auto_list_media) {
+                    list_media();
+                }
+            }
+        });
+    }
+
+    function list_segment_client(auto_list_media) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_segment_client' %}",
+            data: {
+              segment: $('#segment').val(),
+              name_limit: 1
+            },
+            beforeSend: function () {
+                got_companies = false;
+            },
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var client_list = result["content"];
+
+                    $('#company').empty();
+                    $('#company').append('<option value="0">All Clients</option>');
+                    client_list.forEach(function (value, index) {
+                        $('#company').append('<option value="' + value.id + '">' + value.client_name + '</option>');
+                    })
+                    if (auto_list_media) {
+                        $('#company').val(select_company);
+                    }
+                    else {
+                        $('#company').val("0");
+                    }
+                }
+
+                got_companies = true;
+                if (got_countries && got_categories && got_companies && auto_list_media) {
+                    list_media();
+                }
+            }
+        });
+    }
+
+    function list_media() {
+        exclude_country_list = [];
+        $(".region_checkbox").each(function (index) {
+            if ($(this).prop("checked") == false) {
+                var country_id = $(this).attr('id').split("_")[1];
+                if (country_id) {
+                    exclude_country_list.push(country_id);
+                }
+            }
+        })
+
+        exclude_category_list = [];
+        $(".category_checkbox").each(function (index) {
+            if ($(this).prop("checked") == false) {
+                var category_id = $(this).attr('id').split("_")[1];
+                if (category_id) {
+                    exclude_category_list.push(category_id);
+                }
+            }
+        })
+
+        $("#top_recent_list_container").empty();
+        $.ajax({
+            type: "POST",
+            url: '{% url 'ws_list_project' %}',
+            data: {
+                exclude_countries: exclude_country_list.join(","),
+                exclude_categories: exclude_category_list.join(","),
+                //segment: $('#segment').val(),
+                //company: $('#company').val()
+                //client: $('#company').val()
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    var recent_list_data = result["content"];
+                    recent_list_data.forEach(function (data, number) {
+                        var image_url = data.type == 2 ? data.thumb :
+                            data.type == 1 ? data.url : '{{ MEDIA_URL }}images/' + data.url;
+                        $("#top_recent_list_container").append(
+                            '<a class="top_feature_list_item left" href="javascript:void(0);" onclick="javascript:go_detail(' + data.id + ');">' +
+                            '<div class="top_feature_list_item_container" id="media_' + data.id + '">' +
+                                '<div class="top_feature_list_item_date">' + data.regist_date + '</div>' +
+                                '<div class="top_feature_list_item_title">' + data.project_name + '</div>' +
+                                "<div class=\"media_thumb_container pos-rel\" style=\"background: url('" + image_url + "') no-repeat center; background-size: contain;\"></div>" +
+                                '<div class="top_feature_list_item_company left">' + data.company + '</div>' +
+                                '<div class="top_feature_list_item_country right">' + data.country + '</div>' +
+                            '</div>' +
+                            '</a>'
+                        );
+
+                        if (data.type == 2) {
+                            $("#media_" + data.id + " .media_thumb_container").append(
+                                '<img class="video_player_ico pos-abs" src="{% static 'images/player.png' %}" alt="IMAGE">'
+                            );
+                        }
+                    });
+
+                }
+
+            }
+        });
+    }
+
+    function go_detail(project_id) {
+        save_filter();
+        window.location.href = "{% url 'detail' %}?id="  + project_id;
+    }
+
+    function save_filter() {
+        exclude_country_list = [];
+        $(".region_checkbox").each(function (index) {
+            if ($(this).prop("checked") == false) {
+                var country_id = $(this).attr('id').split("_")[1];
+                if (country_id) {
+                    exclude_country_list.push(country_id);
+                }
+            }
+        })
+
+        exclude_category_list = [];
+        $(".category_checkbox").each(function (index) {
+            if ($(this).prop("checked") == false) {
+                var category_id = $(this).attr('id').split("_")[1];
+                if (category_id) {
+                    exclude_category_list.push(category_id);
+                }
+            }
+        })
+
+        var filter_data = {
+            exclude_countries: exclude_country_list,
+            exclude_categories: exclude_category_list,
+            segment: $('#segment').val(),
+            company: $('#company').val()
+        }
+
+        localStorage.setItem("filter_data", JSON.stringify(filter_data));
+    }
+
+    function load_filter() {
+        var filter_data = localStorage.getItem("filter_data");
+        if (filter_data) {
+            filter_data = JSON.parse(filter_data)
+
+            exclude_country_list = filter_data.exclude_countries;
+
+
+            exclude_category_list = filter_data.exclude_categories;
+
+
+            select_segment = filter_data.segment;
+            select_company = filter_data.company;
+
+            localStorage.removeItem("filter_data");
+        }
+    }
+</script>
+</body>
+</html>

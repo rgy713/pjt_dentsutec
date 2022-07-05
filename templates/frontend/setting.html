@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DENTSU TEC</title>
+
+    <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/frontend.css' %}" rel="stylesheet">
+</head>
+<body>
+
+<div class="main-content">
+    <div class="logo_container">
+        <div class="logo_container_content pos-rel">
+            <div class="back_button pos-abs" onclick="javascript:window.history.back()">◀ Back</div>
+            <div class="logo_ico"><img src="{% static 'images/logo.png' %}"></div>
+            <div class="logo_controls pos-abs">
+                <a href="{% url 'index' %}" class="setting_button left">Presentation</a>
+                <a href="{% url 'admin_index' %}" class="setting_button left">Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="logo_label_container pos-rel">
+        <div class="logo_title pos-abs">Setting</div>
+        <div class="logo_label_content center">
+            <div>PROMO TEC ASIA NETWORK</div>
+        </div>
+        <div class="logout_button pos-abs">
+            <a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Logout</a>
+        </div>
+    </div>
+
+    <div id="setting_contents">
+        <div id="setting_search_container">
+            <div id="setting_search_label" class="left">Search</div>
+            <input type="text" id="setting_search_input" class="left">
+            <img src="{% static 'images/search.png' %}" id="setting_search_ico" onclick="javascript:search();">
+        </div>
+        <div id="setting_segment_container" class="left">
+            <div class="setting_list_label">Region</div>
+            <div class="setting_list_container"></div>
+        </div>
+        <div id="setting_company_container" class="left">
+            <div class="setting_list_label">COMPANY</div>
+            <div class="setting_list_container"></div>
+        </div>
+        <div id="setting_controls" class="clear">
+            <a href="javascript:void(0);" class="submit_button left right_margin" id="setting_button_back" onclick="javascript:window.history.back();">BACK</a>
+            <a href="javascript:void(0);" class="submit_button left" id="setting_button_ok" onclick="javascript:setting();">OK</a>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+
+<script>
+    var g_exclude_segment_list = [];
+    var g_exclude_company_list = [];
+    var g_exclude_country_list = [];
+    var g_user_setting = false;
+
+    $(document).ready(function () {
+        search();
+    })
+
+    function search() {
+        list_country();
+    }
+
+    var input = document.getElementById("setting_search_input");
+    input.addEventListener("keyup", function(event) {
+        event.preventDefault();
+        if (event.keyCode === 13) {
+            document.getElementById("setting_search_ico").click();
+        }
+    });
+
+    function list_country() {
+        $("#setting_segment_container .setting_list_container").empty()
+        $("#setting_company_container .setting_list_container").empty()
+
+        $.ajax({
+            type: "GET",
+            url: '{% url 'ws_list_country' %}',
+            timeout: 2000,
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    var country_list = result["content"];
+                    country_list.forEach(function (value, number) {
+                        $("#setting_segment_container .setting_list_container").append(
+                            '<div class="onoffswitch_container">' +
+                                '<div class="onoffswitch left">'+
+                                    '<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox segment_checkbox" id="country_' + value.id + '" checked>' +
+                                    '<label class="onoffswitch-label" for="country_' + value.id + '">' +
+                                        '<span class="onoffswitch-inner"></span>' +
+                                        '<span class="onoffswitch-switch"></span>' +
+                                    '</label>' +
+                                '</div>' +
+                                '<span class="onoffswitch-string">' + value.country_name + '</span>' +
+                            '</div>'
+                        );
+
+                        $("#setting_company_container .setting_list_container").append(
+                            '<div class="setting_list_segment_container" id="segment_container_' + value.id + '">' +
+                                '<div class="setting_list_segment_label">' + value.country_name + '</div>' +
+                                '<div class="setting_list_segment_list_container"></div>' +
+                            '</div>'
+                        );
+
+                        $("#country_" + value.id).change(function () {
+                            var delete_index = g_exclude_country_list.indexOf(value.id + "");
+                            if ($(this).prop("checked")) {
+                                if (delete_index > -1) {
+                                    $("#segment_container_" + value.id).show();
+                                    g_exclude_country_list.splice(delete_index, 1);
+                                }
+                            }
+                            else {
+                                if (delete_index == -1) {
+                                    $("#segment_container_" + value.id).hide();
+                                    g_exclude_country_list.push(value.id + "");
+                                }
+                            }
+                        })
+                    });
+
+                    list_client();
+                }
+            }
+        });
+    }
+
+    function list_segment() {
+        //$("#setting_segment_container .setting_list_container").empty()
+        $("#setting_company_container .setting_list_container").empty()
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'ws_list_segment' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var segment_list = result["content"];
+
+                    segment_list.forEach(function (value, index) {
+                        /*
+                        $("#setting_segment_container .setting_list_container").append(
+                            '<div class="onoffswitch_container">' +
+                                '<div class="onoffswitch left">'+
+                                    '<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox segment_checkbox" id="segment_' + value.id + '" checked>' +
+                                    '<label class="onoffswitch-label" for="segment_' + value.id + '">' +
+                                        '<span class="onoffswitch-inner"></span>' +
+                                        '<span class="onoffswitch-switch"></span>' +
+                                    '</label>' +
+                                '</div>' +
+                                '<span class="onoffswitch-string">' + value.segment_name + '</span>' +
+                            '</div>'
+                        );
+                        */
+
+                        $("#setting_company_container .setting_list_container").append(
+                            '<div class="setting_list_segment_container" id="segment_container_' + value.id + '">' +
+                                '<div class="setting_list_segment_label">' + value.segment_name + '</div>' +
+                                '<div class="setting_list_segment_list_container"></div>' +
+                            '</div>'
+                        );
+
+                        /*
+                        $("#segment_" + value.id).change(function () {
+                            var delete_index = g_exclude_segment_list.indexOf(value.id + "");
+                            if ($(this).prop("checked")) {
+                                $("#segment_container_" + value.id).show();
+                                if (delete_index > -1) {
+                                    g_exclude_segment_list.splice(delete_index, 1);
+                                }
+                            }
+                            else {
+                                $("#segment_container_" + value.id).hide();
+                                if (delete_index == -1) {
+                                    g_exclude_segment_list.push(value.id + "");
+                                }
+                            }
+                        })
+                        */
+                    })
+
+                    //list_company();
+                    list_client();
+                }
+            }
+        });
+    }
+
+    function list_company() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_company' %}",
+            data: {
+              keyword: $("#setting_search_input").val()
+            },
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var company_list = result["content"];
+
+                    company_list.forEach(function (value, index) {
+                        $("#segment_container_" + value.segment + " .setting_list_segment_list_container").append(
+                            '<div class="onoffswitch_container">' +
+                                '<div class="onoffswitch left">'+
+                                    '<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox company_checkbox" id="company_' + value.id + '" checked>' +
+                                    '<label class="onoffswitch-label" for="company_' + value.id + '">' +
+                                        '<span class="onoffswitch-inner"></span>' +
+                                        '<span class="onoffswitch-switch"></span>' +
+                                    '</label>' +
+                                '</div>' +
+                                '<span class="onoffswitch-string">' + value.company_name + '</span>' +
+                            '</div>'
+                        );
+
+                        $("#company_" + value.id).change(function () {
+                            var delete_index = g_exclude_company_list.indexOf(value.id + "");
+                            if ($(this).prop("checked")) {
+                                if (delete_index > -1) {
+                                    g_exclude_company_list.splice(delete_index, 1);
+                                }
+                            }
+                            else {
+                                if (delete_index == -1) {
+                                    g_exclude_company_list.push(value.id + "");
+                                }
+                            }
+                        })
+                    })
+
+                    get_user_setting();
+                }
+            }
+        });
+    }
+
+    function list_client() {
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_client' %}",
+            data: {
+              keyword: $("#setting_search_input").val()
+            },
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var client_list = result["content"];
+
+                    client_list.forEach(function (value, index) {
+                        $("#segment_container_" + value.country + " .setting_list_segment_list_container").append(
+                            '<div class="onoffswitch_container">' +
+                                '<div class="onoffswitch left">'+
+                                    '<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox company_checkbox" id="client_' + value.id + '" checked>' +
+                                    '<label class="onoffswitch-label" for="client_' + value.id + '">' +
+                                        '<span class="onoffswitch-inner"></span>' +
+                                        '<span class="onoffswitch-switch"></span>' +
+                                    '</label>' +
+                                '</div>' +
+                                '<span class="onoffswitch-string">' + value.client_name + '</span>' +
+                            '</div>'
+                        );
+
+                        $("#client_" + value.id).change(function () {
+                            var delete_index = g_exclude_company_list.indexOf(value.id + "");
+                            if ($(this).prop("checked")) {
+                                if (delete_index > -1) {
+                                    g_exclude_company_list.splice(delete_index, 1);
+                                }
+                            }
+                            else {
+                                if (delete_index == -1) {
+                                    g_exclude_company_list.push(value.id + "");
+                                }
+                            }
+                        })
+                    })
+
+                    get_user_setting();
+                }
+            }
+        });
+    }
+
+    function get_user_setting() {
+        $.ajax({
+            type: "GET",
+            url: "{% url 'ws_get_user_setting' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var user_setting = result["content"];
+
+                    var user_exclude_segments = user_setting.segments,
+                        user_exclude_companies = user_setting.companies,
+                        user_exclude_countries = user_setting.countries;
+
+                    if (g_user_setting == false && user_exclude_segments) {
+                        g_exclude_segment_list = user_exclude_segments.split(",");
+                    }
+
+                    g_exclude_segment_list.forEach(function (value, index) {
+                        $("#segment_" + value).prop( "checked", false );
+                    })
+
+
+                    if (g_user_setting == false && user_exclude_companies) {
+                        g_exclude_company_list = user_exclude_companies.split(",");
+                    }
+
+                    g_exclude_company_list.forEach(function (value, index) {
+                        $("#client_" + value).prop( "checked", false );
+                    })
+
+                    if (g_user_setting == false && user_exclude_countries) {
+                        g_exclude_country_list = user_exclude_countries.split(",");
+                    }
+
+                    g_exclude_country_list.forEach(function (value, index) {
+                        $("#country_" + value).prop( "checked", false );
+
+                        $("#segment_container_" + value).hide();
+                    })
+
+                    g_user_setting = true;
+                }
+            }
+        });
+    }
+    
+    function setting() {
+        /*
+        var exclude_segment_list = [];
+        $(".segment_checkbox").each(function (index) {
+            if ($(this).prop("checked") == false) {
+                var segment_id = $(this).attr('id').split("_")[1];
+                if (segment_id) {
+                    exclude_segment_list.push(segment_id);
+                }
+            }
+        })
+
+        var exclude_company_list = [];
+        $(".company_checkbox").each(function (index) {
+            if ($(this).prop("checked") == false) {
+                var company_id = $(this).attr('id').split("_")[1];
+                if (company_id) {
+                    exclude_company_list.push(company_id);
+                }
+            }
+        })
+        */
+
+        $.ajax({
+            type: "POST",
+            url: '{% url 'ws_update_user_setting' %}',
+            data: {
+                segments: g_exclude_segment_list.join(","),
+                companies: g_exclude_company_list.join(","),
+                countries: g_exclude_country_list.join(","),
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                window.location.href = "{% url 'index' %}";
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>

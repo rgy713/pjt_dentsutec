@@ -1,0 +1,451 @@
+{% extends "backend/base.html" %}
+
+{% block title %}<b>写真管理</b>{% endblock %}
+
+{% block menu_name %}photo{% endblock %}
+
+{% block content %}
+
+    <button id="addButton" class="btn btn-success admin_add_button" type="button"><span class="glyphicon glyphicon-plus-sign"></span> 追加</button>
+
+    <div class="admin_table_container">
+        <table id="data_table" class="display responsive nowrap table table-bordered table-hover" style="width: 100%">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 2%">NO</th>
+                    <th class="text-center">ID</th>
+                    <th class="text-center" style="width: 15%">写真</th>
+                    <th class="text-center">写真名</th>
+                    <th class="text-center">プロジェクト</th>
+                    <th class="text-center">クライアント</th>
+                    <th class="text-center">登録日</th>
+                    <th class="text-center">登録者</th>
+                    <th class="text-center" style="width: 10%">ステータス</th>
+                    <th class="text-center" style="width: 10%">操作</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="modal fade" id="creater_container" tabindex="-1" role="dialog" aria-labelledby="media_creater" aria-hidden="true">
+        <div class="modal-dialog modal-md" style="z-index: 1050;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="creater_title">写真登録</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="create_part" class="clearfix margin-bottom-10">
+                        <form id="creater_form" accept-charset="UTF-8" class="sky-form" action="{% url 'create_photo' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value=""/>
+                            <fieldset>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group fg-float">
+                                            <label class="fg-label">ID</label>
+                                            <div class="fg-line" id="ct_id">
+                                                <input id="media_id" name="media_id" type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group fg-float">
+                                            <label class="fg-label">写真名</label>
+                                            <div class="fg-line" id="ct_title">
+                                                <input id="media_title" name="title" type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group fg-float">
+                                            <label class="fg-label">プロジェクト</label>
+                                            <label class="input">
+                                                <select class="form-control" id="project" name="project" style="height:34px;"></select>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group fg-float">
+                                            <label class="fg-label">登録者</label>
+                                            <label class="input">
+                                                <select class="form-control" id="register" name="register" style="height:34px;"></select>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group fg-float">
+                                            <label class="fg-label">登録日</label>
+                                            <div class="fg-line input-append date" id="ct_regist_date">
+                                                <input id="regist_date" name="regist_date" type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group fg-float">
+                                            <label class="fg-label">写真</label>
+                                            <input id="media_url" name="file" type="file" accept="image/*" style="height: 36px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <footer style="float: right">
+                                <button type="button" class="btn btn-success" data-dismiss="modal">キャンセル</button>
+                                <button type="submit" id="info_update" class="btn btn-primary">適用</button>
+                            </footer>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    function showInfo(data) {
+        var media_idx = 0,
+            media_id = "",
+            media_title = "",
+            regist_date = "",
+            register = "1",
+            project = "1";
+
+        if (data) {
+            media_idx = data.id;
+            media_id = data.media_id;
+            media_title = data.title;
+            regist_date = data.regist_date;
+            register = data.register;
+            project = data.project;
+        }
+
+        var $form = $("form#creater_form"),
+            path_action = $form.attr("action");
+
+        $form.find('em').remove();
+        $('.state-error').removeClass("state-error");
+        $('.state-success').removeClass("state-success");
+        $('.invalid').removeClass("invalid");
+        $('.valid').removeClass("valid");
+
+        $("#media_idx").css('display', 'none');
+        if (media_idx) {
+            $form.attr("action", path_action.replace("create", "update"));
+            $("#creater_container").find(".modal-title").html('カテゴリー情報変更');
+            $("[name=id]").val(media_idx);
+        } else {
+            $form.attr("action", path_action.replace("update", "create"));
+            $("#creater_container").find(".modal-title").html('カテゴリー登録');
+            $("[name=id]").val('');
+        }
+
+        $("#media_idx").val(media_idx);
+        $("#media_id").val(media_id);
+        $("#media_title").val(media_title);
+        $("#regist_date").val(regist_date);
+        $("#register").val(register);
+        $("#project").val(project);
+        $("#media_url").val("");
+    }
+
+    $(document).ready(function() {
+
+         $("#regist_date").datepicker({
+            format: 'yyyy-mm-dd',
+            prevText: '<span class="glyphicon glyphicon-menu-left"></span>',
+            nextText: '<span class="glyphicon glyphicon-menu-right"></span>'
+        });
+
+         $.ajax({
+            type: "GET",
+            url: "{% url 'list_project' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var project_list = result["content"];
+
+                    $('#project').empty();
+                    project_list.forEach(function (value, index) {
+                        $('#project').append('<option value="' + value.id + '">' + value.project_name + '</option>');
+                    })
+                }
+            }
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'list_user' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var user_list = result["content"];
+
+                    $('#register').empty();
+                    user_list.forEach(function (value, index) {
+                        $('#register').append('<option value="' + value.id + '">' + value.username + '</option>');
+                    })
+                }
+            }
+        });
+
+        $('#data_table').dataTable({
+            processing: true,
+            serverSide: true,
+            pageLength: 10,
+            language: {
+                "sProcessing": "処理中...",
+                "sSearch": "検索キー",
+                "sLengthMenu": "顕示 &nbsp; _MENU_ &nbsp;項",
+                "sZeroRecords": "検索結果がありません。",
+                "sInfo": "顕示 _START_ から _END_ 項結果，総て _TOTAL_ 項",
+                "sInfoEmpty": "顕示 0から 0項結果，総て 0項')",
+                "sEmptyTable": "検索結果がありません。",
+                "sLoadingRecords": "ローディング中...",
+                "paginate": {
+                    "previous": "以前",
+                    "next": "以後"
+                }
+            },
+            ajax: {
+                "url": "{% url 'list_photo' %}",
+                "type": "POST"
+            },
+            columns: [
+                {name: "number", data: "number", defaultContent: "", className: "dt-center", orderable: false},
+                {name: "media_id", data: "media_id", defaultContent: "", className: "dt-center"},
+                {
+                    name: "media_url",
+                    data: "url",
+                    defaultContent: "",
+                    className: "dt-center",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        var html = '<img src="{{ MEDIA_URL }}images/' + data + '" class="img-thumbnail" style="padding: 5px 10px 5px 10px;" alt="' + row.title + '">'
+
+                        return html;
+                    }
+                },
+                {name: "media_title", data: "title", defaultContent: "", className: "dt-center"},
+                {name: "project__project_name", data: "project__project_name", defaultContent: "", className: "dt-center"},
+                {name: "project__client", data: "project__client", defaultContent: "", className: "dt-center"},
+                {name: "regist_date", data: "regist_date", defaultContent: "", className: "dt-center"},
+                {name: "register__username", data: "register__username", defaultContent: "", className: "dt-center"},
+                {
+                    name: "status",
+                    data: "status",
+                    defaultContent: "",
+                    className: "dt-center",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        var html =
+                            '<button name="statusOffButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn ' + (data == 0 ? 'btn-default' : 'btn-success') + '" onclick="setStatus(' + row.id + ', 1, ' + data + ');">' +
+                            '掲 載' +
+                            '</button>&nbsp;&nbsp;&nbsp;' +
+                            '<button name="statusOnButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn ' + (data == 1 ? 'btn-default' : 'btn-warning') + '" onclick="setStatus(' + row.id + ', 0, ' + data + ');">' +
+                            '非掲載' +
+                            '</button>';
+
+                        return html;
+                    }
+                },
+                {
+                    name: "edit",
+                    data: "id",
+                    defaultContent: "",
+                    className: "dt-center",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        var html =
+                            '<button name="editButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn btn-info" onclick="editInfo(' + row.id + ');">' +
+                            '   <span class="glyphicon glyphicon-edit"></span>' +
+                            '</button>';
+
+                        return html;
+                    }
+                }
+            ]
+        });
+
+        $("#addButton").on("click", function () {
+            showInfo();
+            $('#creater_container').modal({backdrop: 'static', keyboard: false});
+            $("#creater_container").modal('show');
+        });
+
+        setStatus = function (p_obj_id, p_status, old_status) {
+            if (old_status != p_status) {
+                object_id = p_obj_id;
+                object_status = p_status;
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'update_photo' %}",
+                    data: {
+                        id: object_id,
+                        status: object_status
+                    },
+                    success: function (result) {
+                        if (result["type"] == "S_OK") {
+                            $('#data_table').DataTable().ajax.reload();
+                        }
+                        else {
+                            var error_text;
+                            if (result["content"] == 'ERR_MEDIA_UPDATE') {
+                                error_text = 'ERR_MEDIA_UPDATE。';
+                                $("#creater_container").modal('hide');
+                            }
+
+
+                            new PNotify({
+                                title: "登録エラー",
+                                text: error_text,
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    },
+                    error: function () {
+                        new PNotify({
+                            title: "登録エラー",
+                            text: "登録中にエラーが発生しました。",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                });
+            }
+        }
+
+        editInfo = function (p_obj_id) {
+            object_id = p_obj_id;
+            $.ajax({
+                type: "POST",
+                url: "{% url 'get_photo' %}",
+                data: {
+                    id: object_id
+                },
+                success: function (data) {
+                    if (data.id !== undefined) {
+                        showInfo(data);
+                        $('#creater_container').modal({backdrop: 'static', keyboard: false});
+                        $("#creater_container").modal('show');
+                    }
+                    else {
+                        new PNotify({
+                            title: "資料積載エラー",
+                            text: "資料積載中にエラーが発生しました。",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                },
+                error: function () {
+                    new PNotify({
+                        title: "資料積載エラー",
+                        text: "資料積載中にエラーが発生しました。",
+                        delay: 3000,
+                        type: 'error'
+                    });
+                }
+            });
+        }
+
+        // Validation for login form
+        $("#creater_form").validate({
+                // Rules for form validation
+                rules: {
+                    media_id: {
+                        required: true
+                    },
+                    title: {
+                        required: true
+                    },
+                    regist_date: {
+                        required: true
+                    }
+                },
+
+                // Messages for form validation
+                messages: {
+                    media_id: {
+                        required: 'IDを入力してください。'
+                    },
+                    title: {
+                        required: '写真名を入力してください。'
+                    },
+                    regist_date: {
+                        required: '登録日を入力してください。'
+                    }
+                },
+
+                // Do not change code below
+                errorPlacement: function (error, element) {
+                    if ($(element).attr("name") == "media_id") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "title") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "regist_date") {
+                        error.insertAfter(element.parent());
+                    } else {
+                        $(element).parent().parent().addClass("state-error");
+                        $(error).insertAfter(element.parent().parent());
+                    }
+                },
+
+                submitHandler: function (form) {
+                    var action = $("form#creater_form").attr("action")
+                    var fd = new FormData($("form#creater_form")[0]);
+                    $.ajax({
+                        type: "POST",
+                        url: action,
+                        processData: false,
+                        contentType: false,
+                        //data : $('#formAddUser').serialize(),
+                        data: fd,
+                        success: function (result) {
+                            if (result["type"] == "S_OK") {
+                                $('#data_table').DataTable().ajax.reload();
+                                $("#creater_container").modal('hide');
+                            }
+                            else {
+                                var error_text;
+                                if (result["content"] == 'ERR_MEDIA_CREATE') {
+                                    error_text = 'ERR_MEDIA_CREATE。';
+                                    $("#creater_container").modal('hide');
+                                }
+                                else if (result["content"] == 'ERR_MEDIA_UPDATE') {
+                                    error_text = 'ERR_MEDIA_UPDATE。';
+                                    $("#creater_container").modal('hide');
+                                }
+
+                                new PNotify({
+                                    title: "登録エラー",
+                                    text: error_text,
+                                    delay: 3000,
+                                    type: 'error'
+                                });
+                            }
+                        },
+                        error: function () {
+                            new PNotify({
+                                title: "登録エラー",
+                                text: "登録中にエラーが発生しました。",
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    });
+                }
+            });
+    });
+</script>
+
+{% endblock content %}

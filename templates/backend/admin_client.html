@@ -1,0 +1,477 @@
+{% extends "backend/base.html" %}
+
+{% block title %}<b>Client management</b>{% endblock %}
+
+{% block menu_name %}client{% endblock %}
+
+{% block content %}
+
+    <div id="addButton" class="admin_add_button admin_button glossy white"><p>Create</p></div>
+
+    <div class="admin_table_container pos-rel">
+        <div class="admin_table_filter pos-abs">
+            <label class="cbo_label left">Region</label>
+            <select class="cbo_filter left" id="cbo_countries">
+            </select>
+        </div>
+        <table id="data_table" class="display responsive nowrap table table-bordered table-hover" style="width: 100%">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 2%">Client ID.NO</th>
+                    <th class="text-center" style="width: 30%">Client(Full Name)</th>
+                    <th class="text-center" style="width: 20%">Client(Short Name)</th>
+                    <th class="text-center">Region</th>
+                    <th class="text-center" style="width: 10%">Edit</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="modal fade" id="creater_container" tabindex="-1" role="dialog" aria-labelledby="client_creater" aria-hidden="true">
+        <div class="modal-dialog modal-md" style="z-index: 1050;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="creater_title">Create Client</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="create_part" class="clearfix margin-bottom-10">
+                        <form id="creater_form" accept-charset="UTF-8" class="sky-form" action="{% url 'create_client' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <fieldset>
+                                <div class="row" id="client_idx">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Client ID.NO</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" type="hidden" name="id" value="" readonly/>
+                                        <input class="form-control" type="text" name="cid" value="" readonly/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label fg-float">Region</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input id="country" name="country" type="text" value="{{ user_profile.country.country_name }}" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Client(Full Name)</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group fg-float">
+                                            <input id="client_name" name="client_name" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Client(Short Name)</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="select-editable">
+                                            <select class="form-control" id="company" name="company" style="height:34px;"></select>
+                                            <input type="text" id="edit_company" name="edit_company" value="" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Comment</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <textarea class="form-control" rows="3" name="note" id="note" style="resize:none"></textarea>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <footer class="center">
+                                <button id="info_update" type="submit" class="admin_button glossy white"><p>Update</p></button>
+                                <button id="info_delete" type="button" class="admin_button glossy white"><p>Delete</p></button>
+                            </footer>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    function showInfo(data) {
+        var client_idx = 0,
+            client_name = ''
+            country_name = '{{ user_profile.country.country_name }}',
+            company = "",
+            note = "";
+
+        client_idx = data.id;
+        if (!data.create) {
+            client_name = data.client_name;
+            country_name = data.country_name;
+            company = data.company;
+            note = data.note;
+        }
+
+        var $form = $("form#creater_form"),
+            path_action = $form.attr("action");
+
+        $form.find('em').remove();
+        $('.state-error').removeClass("state-error");
+        $('.state-success').removeClass("state-success");
+        $('.invalid').removeClass("invalid");
+        $('.valid').removeClass("valid");
+
+        if (!data.create) {
+            $form.attr("action", path_action.replace("create", "update"));
+            $("#creater_container").find(".modal-title").html('Update Client');
+            $("[name=id]").val(client_idx);
+            $("[name=cid]").val("C" + client_idx);
+            $("#info_update p").html("Update");
+            $("#info_delete").show();
+
+            $("#client_idx").show();
+        } else {
+            $form.attr("action", path_action.replace("update", "create"));
+            $("#creater_container").find(".modal-title").html('Create Client');
+            $("[name=id]").val(client_idx);
+            $("[name=cid]").val("C" + client_idx);
+            $("#info_update p").html("Create");
+            $("#info_delete").hide();
+
+            $("#client_idx").show();
+        }
+
+
+        $("#client_name").val(client_name);
+        $("#country").val(country_name);
+        $("#note").val(note);
+
+        get_list_company(company);
+    }
+
+    function get_list_company(company_id) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'list_company' %}",
+            data: {
+                //segment: $("#segment").val()
+            },
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var company_list = result["content"];
+
+                    $('#company').empty();
+                    $('#company').append('<option value="">..Create</option>');
+                    company_list.forEach(function (value, index) {
+                        $('#company').append('<option value="' + value.id + '">' + value.company_name + '</option>');
+                    })
+
+                    $('#company').val(company_id);
+                    $("#edit_company").val($("#company").val() ? $("#company option:selected").text() : "");
+                }
+            }
+        });
+    }
+
+    var admin_data_table;
+
+    $(document).ready(function() {
+
+        $("#start_date").datepicker({
+            format: 'yyyy-mm-dd',
+            prevText: '<span class="glyphicon glyphicon-menu-left"></span>',
+            nextText: '<span class="glyphicon glyphicon-menu-right"></span>'
+        });
+        $("#end_date").datepicker({
+            format: 'yyyy-mm-dd',
+            prevText: '<span class="glyphicon glyphicon-menu-left"></span>',
+            nextText: '<span class="glyphicon glyphicon-menu-right"></span>'
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'list_country' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var country_list = result["content"];
+
+                    $('#cbo_countries').empty();
+                    $('#cbo_countries').append('<option value=""></option>');
+                    country_list.forEach(function (value, index) {
+                        $('#cbo_countries').append('<option value="' + value.id + '">' + value.country_name + '</option>');
+                    })
+                }
+            }
+        });
+
+        $("#company").on('change', function() {
+           $("#edit_company").val($("#company").val() ? $("#company option:selected").text() : "");
+        })
+
+        admin_data_table = $('#data_table').DataTable({
+            processing: true,
+            serverSide: true,
+            pageLength: 10,
+            ajax: {
+                "url": "{% url 'list_client' %}",
+                "type": "POST"
+            },
+            columns: [
+                {name: "id", data: "id", defaultContent: "", className: "dt-center", orderable: false},
+                {
+                    name: "client_name", data: "client_name", defaultContent: "", className: "dt-center",
+                    render: function (data, type, row, meta) {
+                        return "<div style='white-space:normal;word-break: break-all;'>" + data + "</div>";
+                    }
+                },
+                {
+                    name: "company", data: "company", defaultContent: "", className: "dt-center",
+                    render: function (data, type, row, meta) {
+                        return "<div style='white-space:normal;word-break: break-all;'>" + data + "</div>";
+                    }
+                },
+                {name: "country_name", data: "country_name", defaultContent: "", className: "dt-center"},
+                /*
+                {
+                    name: "status",
+                    data: "status",
+                    defaultContent: "",
+                    className: "dt-center",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        var html =
+                            '<button name="statusOffButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn ' + (data == 0 ? 'btn-default' : 'btn-success') + '" onclick="setStatus(' + row.id + ', 1, ' + data + ');">' +
+                            '掲 載' +
+                            '</button>&nbsp;&nbsp;&nbsp;' +
+                            '<button name="statusOnButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn ' + (data == 1 ? 'btn-default' : 'btn-warning') + '" onclick="setStatus(' + row.id + ', 0, ' + data + ');">' +
+                            '非掲載' +
+                            '</button>';
+
+                        return html;
+                    }
+                },
+                */
+                {
+                    name: "edit",
+                    data: "editable",
+                    defaultContent: "",
+                    className: "dt-center",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        if (data) {
+                            var html = '<div class="admin_button glossy white admin_edit_button" onclick="editInfo(' + row.id + ');"><p>Edit</p></div>';
+
+                            return html;
+                        }
+                        else {
+                            return "";
+                        }
+
+                    }
+                }
+            ]
+        });
+
+        $("#cbo_countries").on('change', function() {
+           admin_data_table.column(3).search($(this).val()).draw();
+        })
+
+        $("#addButton").on("click", function () {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'create_client_id' %}",
+                success: function (result) {
+                    if (result["type"] == "S_OK") {
+                        var data = {
+                            create: true,
+                            id: result["content"]
+                        };
+
+                        showInfo(data);
+                        $('#creater_container').modal({backdrop: 'static', keyboard: false});
+                        $("#creater_container").modal('show');
+                    }
+                }
+            });
+        });
+
+        $("#info_delete").on("click", function (e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: "POST",
+                url: "{% url 'delete_client' %}",
+                data: {
+                    id: $("[name=id]").val()
+                },
+                complete: function () {
+                    $('#data_table').DataTable().ajax.reload();
+                    $("#creater_container").modal('hide');
+                }
+            });
+        });
+
+        setStatus = function (p_obj_id, p_status, old_status) {
+            if (old_status != p_status) {
+                object_id = p_obj_id;
+                object_status = p_status;
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'update_client' %}",
+                    data: {
+                        id: object_id,
+                        status: object_status
+                    },
+                    success: function (result) {
+                        if (result["type"] == "S_OK") {
+                            $('#data_table').DataTable().ajax.reload();
+                        }
+                        else {
+                            var error_text;
+                            if (result["content"] == 'ERR_CLIENT_CREATE') {
+                                error_text = 'ERR_CLIENT_CREATE。';
+                                $("#creater_container").modal('hide');
+                            }
+
+                            new PNotify({
+                                title: "Error",
+                                text: error_text,
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    },
+                    error: function () {
+                        new PNotify({
+                            title: "Error",
+                            text: "Unknown error.",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                });
+            }
+        }
+
+        editInfo = function (p_obj_id) {
+            object_id = p_obj_id;
+            $.ajax({
+                type: "POST",
+                url: "{% url 'get_client' %}",
+                data: {
+                    id: object_id
+                },
+                success: function (data) {
+                    if (data.id !== undefined) {
+                        showInfo(data);
+                        $('#creater_container').modal({backdrop: 'static', keyboard: false});
+                        $("#creater_container").modal('show');
+                    }
+                    else {
+                        new PNotify({
+                            title: "Error",
+                            text: "Unknown error.",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                },
+                error: function () {
+                    new PNotify({
+                        title: "Error",
+                        text: "Unknown error.",
+                        delay: 3000,
+                        type: 'error'
+                    });
+                }
+            });
+        }
+
+        // Validation for login form
+        $("#creater_form").validate({
+                // Rules for form validation
+                rules: {
+                    client_name: {
+                        required: true
+                    },
+                    edit_company: {
+                        required: true
+                    }
+                },
+
+                // Messages for form validation
+                messages: {
+                    client_name: {
+                        required: 'Client Full Name is required.'
+                    },
+                    edit_company: {
+                        required: 'Client Short Name is required.'
+                    }
+                },
+
+                // Do not change code below
+                errorPlacement: function (error, element) {
+                    if ($(element).attr("name") == "client_name") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "edit_company") {
+                        error.insertAfter(element.parent());
+                    }
+                    else {
+                        $(element).parent().parent().addClass("state-error");
+                        $(error).insertAfter(element.parent().parent());
+                    }
+                },
+
+                submitHandler: function (form) {
+                    var action = $("form#creater_form").attr("action")
+                    var fd = new FormData($("form#creater_form")[0]);
+                    $.ajax({
+                        type: "POST",
+                        url: action,
+                        processData: false,
+                        contentType: false,
+                        //data : $('#formAddUser').serialize(),
+                        data: fd,
+                        success: function (result) {
+                            if (result["type"] == "S_OK") {
+                                $('#data_table').DataTable().ajax.reload();
+                                $("#creater_container").modal('hide');
+                            }
+                            else {
+                                var error_text;
+                                if (result["content"] == 'ERR_CLIENT_CREATE') {
+                                    error_text = 'ERR_CLIENT_CREATE。';
+                                    $("#creater_container").modal('hide');
+                                }
+                                else if (result["content"] == 'ERR_CLIENT_UPDATE') {
+                                    error_text = 'ERR_CLIENT_UPDATE。';
+                                    $("#creater_container").modal('hide');
+                                }
+
+
+                                new PNotify({
+                                    title: "Error",
+                                    text: error_text,
+                                    delay: 3000,
+                                    type: 'error'
+                                });
+                            }
+                        },
+                        error: function () {
+                            new PNotify({
+                                title: "Error",
+                                text: "Unknown error.",
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    });
+                }
+            });
+    });
+</script>
+
+{% endblock content %}

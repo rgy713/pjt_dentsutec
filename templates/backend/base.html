@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DENTSU TEC</title>
+
+    <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/backend.css' %}">
+    <link rel="stylesheet" href="{% static 'lib/bootstrap-datepicker/css/datepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'lib/bootstrap-sweetalert/sweet-alert.css' %}">
+    <link rel="stylesheet" href="{% static 'lib/sky-forms-pro/skyforms/css/sky-forms.css' %}">
+    <link rel="stylesheet" href="{% static 'lib/sky-forms-pro/skyforms/custom/custom-sky-forms.css' %}">
+    <link rel="stylesheet" href="{% static 'lib/pnotify/pnotify.css' %}">
+    <link rel="stylesheet" href="{% static 'lib/pnotify/pnotify.brighttheme.css' %}">
+    <link rel="stylesheet" href="{% static 'lib/pnotify/pnotify.buttons.css' %}">
+
+    <script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'lib/bootstrap-datepicker/js/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'lib/bootstrap-sweetalert/sweet-alert.min.js' %}"></script>
+    <script src="{% static 'lib/sky-forms-pro/skyforms/js/jquery.form.min.js' %}"></script>
+    <script src="{% static 'lib/sky-forms-pro/skyforms/js/jquery.validate.min.js' %}"></script>
+    <script src="{% static 'lib/pnotify/pnotify.js' %}"></script>
+    <script src="{% static 'lib/pnotify/pnotify.buttons.js' %}"></script>
+
+{% load i18n static %}
+{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+
+</head>
+<body>
+    <div class="logo_container">
+        <div class="logo_container_content pos-rel">
+            <div class="back_button pos-abs" onclick="javascript:window.history.back()">◀ Back</div>
+            <div class="logo_controls pos-abs">
+                <a href="{% url 'index' %}" class="setting_button left">Presentation</a>
+                <a href="{% url 'setting' %}" class="setting_button left">Setting</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="logo_label_container pos-rel">
+        <div class="logo_title pos-abs">{% block title %}{% endblock %}</div>
+        <div class="logo_label_content center">
+            <div>PROMO TEC ASIA NETWORK</div>
+        </div>
+        <div class="logout_button pos-abs">
+            <a id="admin_menu_project" href="{% url 'admin_project' %}" class="left">Project Management</a>
+            <a id="admin_menu_client" href="{% url 'admin_client' %}" class="left">Client Management</a>
+            <a href="{% url 'admin_logout' %}" class="left"><i class="fa fa-sign-out"></i> Logout</a>
+        </div>
+    </div>
+
+    {% block content %}
+
+    {% endblock %}
+
+    <script>
+        $("#admin_menu_" + '{% block menu_name %}{% endblock %}').hide();
+    </script>
+
+</body>
+</html>

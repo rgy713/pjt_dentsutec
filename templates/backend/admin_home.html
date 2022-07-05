@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DENTSU TEC</title>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/backend.css' %}">
+
+    <script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+</head>
+<body>
+    <div class="logo_container">
+        <div class="logo_container_content pos-rel">
+            <div class="back_button pos-abs" onclick="javascript:window.history.back()">◀ Back</div>
+            <div class="logo_controls pos-abs">
+                <a href="{% url 'index' %}" class="setting_button left">Presentation</a>
+                <a href="{% url 'setting' %}" class="setting_button left">Setting</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="logo_label_container pos-rel">
+        <div class="logo_title pos-abs">Admin</div>
+        <div class="logo_label_content center">
+            <div>PROMO TEC ASIA NETWORK</div>
+        </div>
+        <div class="logout_button pos-abs">
+            <a href="{% url 'admin_logout' %}"><i class="fa fa-sign-out"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="admin_home_contents">
+        <div class="admin_home_buttons center">
+            <a href="{% url 'admin_project' %}" class="admin_home_button">Project Manangement</a>
+            <a href="{% url 'admin_client' %}" class="admin_home_button">Client Management</a>
+        </div>
+    </div>
+
+</body>
+</html>

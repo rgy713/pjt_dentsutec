@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DENTSU TEC</title>
+
+    <link rel="stylesheet" href="{% static 'css/jquery-jvectormap-2.0.3.css' %}" type="text/css"/>
+
+    <link href="{% static 'css/frontend.css' %}" rel="stylesheet">
+</head>
+<body>
+<div class="main-content">
+    <div class="top_logo center">
+        <a href="{% url 'index' %}">DENTSU TEC</a>
+    </div>
+
+    <div class="top_label" id="region_top_label">
+        <div class="right">PROMO TEC ASIA NETWORK</div>
+    </div>
+
+    <div id="country_contents" class="pos-rel">
+        <div class="world_map"></div>
+        <div id="country_label" class="country_container_label pos-abs">{{ country_name }}</div>
+        <div id="country_showcase_container" class="pos-abs">
+            <div id="country_showcase_label" class="country_container_label center">Show case</div>
+            <div id="country_showcase_list_container">
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+
+<script src="{% static 'js/jquery-jvectormap-2.0.3.min.js' %}"></script>
+<script src="{% static 'js/jquery-jvectormap-asia-mill.js' %}"></script>
+
+<script>
+    $(function () {
+        var marker_cities = [
+            {latLng: [39.90419989999999, 116.40739630000007], name: 'Beijing'},
+            {latLng: [31.2303904, 121.47370209999997], name: 'Shanghai'},
+            {latLng: [23.020673, 113.751799], name: 'Dongguan'},
+            {latLng: [35.6894875, 139.69170639999993], name: 'Tokyo'},
+            {latLng: [35.1814464, 136.90639799999997], name: 'Nakoya'},
+            {latLng: [34.6937378, 135.50216509999996], name: 'Osaka'},
+            {latLng: [13.7563309, 100.50176510000006], name: 'Bangkok'},
+            {latLng: [10.8230989, 106.6296638], name: 'Ho Chi Minh'},
+            {latLng: [3.139003, 101.68685499999992], name: 'Kuala Lumpur'},
+            {latLng: [1.352083, 103.81983600000001], name: 'Singapore'},
+            {latLng: [-6.17511, 106.86503949999997], name: 'Jakarta'},
+            {latLng: [28.4594965, 77.02663830000006], name: 'Gurgaon'}
+        ];
+
+        $('.world_map').vectorMap({
+            map: 'asia_mill',
+            backgroundColor: '#dadada',
+            scaleColors: ['#C8EEFF', '#0071A4'],
+            normalizeFunction: 'polynomial',
+            hoverOpacity: 0.7,
+            hoverColor: false,
+            regionStyle: {},
+            selectedRegions: '{{ country_id }}'
+        });
+    });
+
+    $(document).ready(function () {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_project' %}",
+            data: {
+                'country_id': '{{ country_id }}'
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    var project_list = result["content"]
+                    project_list.forEach(function (project, number) {
+                        $("#country_showcase_list_container").append(
+                            '<a href="{% url 'detail' %}?id=' + project.id + '">' +
+                            '<div class="country_showcase_list_item">' +
+                            '<div class="country_showcase_list_item_mark left">▶</div>' +
+                            '<div class="country_showcase_list_item_content left">' +
+                            '<div class="country_showcase_list_item_title">' + project.project_name + '</div>' +
+                            '<div class="country_showcase_list_item_detail">' + project.client + '</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '</a>'
+                        );
+                    });
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

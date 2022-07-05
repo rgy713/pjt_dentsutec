@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DENTSU TEC</title>
+
+    <link rel="stylesheet" href="{% static 'css/jquery-jvectormap-2.0.3.css' %}" type="text/css"/>
+
+    <link href="{% static 'css/frontend.css' %}" rel="stylesheet">
+</head>
+<body>
+<div class="main-content">
+    <div class="top_logo center">
+        <a href="{% url 'index' %}">DENTSU TEC</a>
+    </div>
+
+    <div class="top_label">
+        <div class="left">Region</div>
+        <div class="right">PROMO TEC ASIA NETWORK</div>
+    </div>
+
+    <div id="region_contents">
+        <div class="world_map"></div>
+    </div>
+</div>
+
+<script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+
+<script src="{% static 'js/jquery-jvectormap-2.0.3.min.js' %}"></script>
+<script src="{% static 'js/jquery-jvectormap-asia-mill.js' %}"></script>
+
+<script>
+    $(function () {
+        var marker_cities = [
+            {latLng: [39.90419989999999, 116.40739630000007], name: 'Beijing', country: "CN"},
+            {latLng: [31.2303904, 121.47370209999997], name: 'Shanghai', country: "CN"},
+            {latLng: [23.020673, 113.751799], name: 'Dongguan', country: "CN"},
+            {latLng: [35.6894875, 139.69170639999993], name: 'Tokyo', country: "JP"},
+            {latLng: [35.1814464, 136.90639799999997], name: 'Nakoya', country: "JP"},
+            {latLng: [34.6937378, 135.50216509999996], name: 'Osaka', country: "JP"},
+            {latLng: [13.7563309, 100.50176510000006], name: 'Bangkok', country: "TH"},
+            {latLng: [10.8230989, 106.6296638], name: 'Ho Chi Minh', country: "VN"},
+            {latLng: [3.139003, 101.68685499999992], name: 'Kuala Lumpur', country: "MY"},
+            {latLng: [1.352083, 103.81983600000001], name: 'Singapore', country: "SG"},
+            {latLng: [-6.17511, 106.86503949999997], name: 'Jakarta', country: "ID"},
+            {latLng: [28.4594965, 77.02663830000006], name: 'Gurgaon', country: "IN"}
+        ];
+
+        $('.world_map').vectorMap({
+            map: 'asia_mill',
+            backgroundColor: '#dadada',
+            scaleColors: ['#C8EEFF', '#0071A4'],
+            normalizeFunction: 'polynomial',
+            hoverOpacity: 0.7,
+            hoverColor: false,
+            markerStyle: {
+                initial: {
+                    fill: '#F8E23B',
+                    stroke: '#383f47'
+                }
+            },
+            markerLabelStyle: {
+                initial: {
+                    'font-family': 'Verdana',
+                    'font-size': '12',
+                    'font-weight': 'bold',
+                    cursor: 'default',
+                    fill: 'black'
+                },
+                hover: {
+                    cursor: 'pointer'
+                }
+            },
+            labels: {
+                markers: {
+                    render: function (index) {
+                        return marker_cities[index].name;
+                    }
+                }
+            },
+            markers: marker_cities,
+            onMarkerClick: function (e, index) {
+                window.location.href = "{% url 'country' %}?id=" + marker_cities[index].country;
+            }
+        });
+    });
+</script>
+</body>
+</html>

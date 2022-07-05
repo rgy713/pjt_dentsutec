@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <title>DENTSU TEC</title>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+
+    <script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+</head>
+<body>
+    <div class="dy-container-m">
+        <div class="dy-contents">
+            <form id="id-login-form" method="POST" action="{% url 'admin_login' %}" class="sign-in-form">
+                {% csrf_token %}
+                <h2 class="sub-title" style="margin-bottom: 20px;text-align: center;font-size: 35px;">電通テック 管理サイト<br>ログイン </h2>
+                {% if form.errors %}
+                    <span class="dy-errer-msg">ログイン情報が間違っています。</span><br/>
+                {% endif %}
+                <div class="form-group">
+                    <label class="dy-input-label" for="{{ form.username.id_for_label }}">ユーザー名:</label>
+                    <input class="form-control" id="{{ form.username.id_for_label }}" maxlength="15"
+                           name="{{ form.username.html_name }}" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label class="dy-input-label" for="{{ form.password.id_for_label }}">パスワード:</label>
+                    <input class="form-control" id="{{ form.password.id_for_label }}" maxlength="120"
+                           name="{{ form.password.html_name }}" type="password"/>
+                </div>
+                <input type="submit" class="save btn btn-success" style="width: -webkit-fill-available;font-size: inherit;" value="ログイン">
+{#                <a href="" style="float: right;"><span style="line-height: 3em;font-size: 16px;">パスワードを忘れましたか?</span></a>#}
+                <input type="hidden" name="next" value="">
+            </form>
+
+        </div>
+    </div>
+</body>
+</html>

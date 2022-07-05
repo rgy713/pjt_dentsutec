@@ -1,0 +1,337 @@
+{% extends "backend/base.html" %}
+
+{% block title %}<b>カテゴリー別管理</b>{% endblock %}
+
+{% block menu_name %}category{% endblock %}
+
+{% block content %}
+
+    <button id="addButton" class="btn btn-success admin_add_button" type="button"><span class="glyphicon glyphicon-plus-sign"></span> 追加</button>
+
+    <div class="admin_table_container">
+        <table id="data_table" class="display responsive nowrap table table-bordered table-hover" style="width: 100%">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 2%">NO</th>
+                    <th class="text-center">カテゴリー ID</th>
+                    <th class="text-center">カテゴリー</th>
+                    <th class="text-center" style="width: 10%">ステータス</th>
+                    <th class="text-center" style="width: 10%">操作</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="modal fade" id="creater_container" tabindex="-1" role="dialog" aria-labelledby="category_creater" aria-hidden="true">
+        <div class="modal-dialog modal-md" style="z-index: 1050;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="creater_title">カテゴリー登録</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="create_part" class="clearfix margin-bottom-10">
+                        <form id="creater_form" accept-charset="UTF-8" class="sky-form" action="{% url 'create_category' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value=""/>
+                            <fieldset>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group fg-float">
+                                            <label class="fg-label">カテゴリー ID</label>
+                                            <div class="fg-line" id="ct_id">
+                                                <input id="category_id" name="category_id" type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group fg-float">
+                                            <label class="fg-label">カテゴリー</label>
+                                            <div class="fg-line" id="ct_name">
+                                                <input id="category_name" name="category_name" type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <footer style="float: right">
+                                <button type="button" class="btn btn-success" data-dismiss="modal">キャンセル</button>
+                                <button type="submit" id="info_update" class="btn btn-primary">適用</button>
+                            </footer>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    function showInfo(data) {
+        var category_idx = 0,
+            category_id = "",
+            category_name = "";
+
+        if (data) {
+            category_idx = data.id;
+            category_id = data.category_id;
+            category_name = data.category_name;
+        }
+
+        var $form = $("form#creater_form"),
+            path_action = $form.attr("action");
+
+        $form.find('em').remove();
+        $('.state-error').removeClass("state-error");
+        $('.state-success').removeClass("state-success");
+        $('.invalid').removeClass("invalid");
+        $('.valid').removeClass("valid");
+
+        $("#category_idx").css('display', 'none');
+        if (category_idx) {
+            $form.attr("action", path_action.replace("create", "update"));
+            $("#creater_container").find(".modal-title").html('カテゴリー情報変更');
+            $("[name=id]").val(category_idx);
+        } else {
+            $form.attr("action", path_action.replace("update", "create"));
+            $("#creater_container").find(".modal-title").html('カテゴリー登録');
+            $("[name=id]").val('');
+        }
+
+        $("#category_idx").val(category_idx);
+        $("#category_id").val(category_id);
+        $("#category_name").val(category_name);
+    }
+
+    $(document).ready(function() {
+
+        $('#data_table').dataTable({
+            processing: true,
+            serverSide: true,
+            pageLength: 10,
+            language: {
+                "sProcessing": "処理中...",
+                "sSearch": "検索キー",
+                "sLengthMenu": "顕示 &nbsp; _MENU_ &nbsp;項",
+                "sZeroRecords": "検索結果がありません。",
+                "sInfo": "顕示 _START_ から _END_ 項結果，総て _TOTAL_ 項",
+                "sInfoEmpty": "顕示 0から 0項結果，総て 0項')",
+                "sEmptyTable": "検索結果がありません。",
+                "sLoadingRecords": "ローディング中...",
+                "paginate": {
+                    "previous": "以前",
+                    "next": "以後"
+                }
+            },
+            ajax: {
+                "url": "{% url 'list_category' %}",
+                "type": "POST"
+            },
+            columns: [
+                {name: "number", data: "number", defaultContent: "", className: "dt-center", orderable: false},
+                {name: "category_id", data: "category_id", defaultContent: "", className: "dt-center"},
+                {name: "category_name", data: "category_name", defaultContent: "", className: "dt-center"},
+                {
+                    name: "status",
+                    data: "status",
+                    defaultContent: "",
+                    className: "dt-center",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        var html =
+                            '<button name="statusOffButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn ' + (data == 0 ? 'btn-default' : 'btn-success') + '" onclick="setStatus(' + row.id + ', 1, ' + data + ');">' +
+                            '掲 載' +
+                            '</button>&nbsp;&nbsp;&nbsp;' +
+                            '<button name="statusOnButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn ' + (data == 1 ? 'btn-default' : 'btn-warning') + '" onclick="setStatus(' + row.id + ', 0, ' + data + ');">' +
+                            '非掲載' +
+                            '</button>';
+
+                        return html;
+                    }
+                },
+                {
+                    name: "edit",
+                    data: "id",
+                    defaultContent: "",
+                    className: "dt-center",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        var html =
+                            '<button name="editButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn btn-info" onclick="editInfo(' + row.id + ');">' +
+                            '   <span class="glyphicon glyphicon-edit"></span>' +
+                            '</button>';
+
+                        return html;
+                    }
+                }
+            ]
+        });
+
+        $("#addButton").on("click", function () {
+            showInfo();
+            $('#creater_container').modal({backdrop: 'static', keyboard: false});
+            $("#creater_container").modal('show');
+        });
+
+        setStatus = function (p_obj_id, p_status, old_status) {
+            if (old_status != p_status) {
+                object_id = p_obj_id;
+                object_status = p_status;
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'update_category' %}",
+                    data: {
+                        id: object_id,
+                        status: object_status
+                    },
+                    success: function (result) {
+                        if (result["type"] == "S_OK") {
+                            $('#data_table').DataTable().ajax.reload();
+                        }
+                        else {
+                            var error_text;
+                            if (result["content"] == 'ERR_CATEGORY_UPDATE') {
+                                error_text = 'ERR_CATEGORY_UPDATE。';
+                                $("#creater_container").modal('hide');
+                            }
+
+                            new PNotify({
+                                title: "登録エラー",
+                                text: error_text,
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    },
+                    error: function () {
+                        new PNotify({
+                            title: "登録エラー",
+                            text: "登録中にエラーが発生しました。",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                });
+            }
+        }
+
+        editInfo = function (p_obj_id) {
+            object_id = p_obj_id;
+            $.ajax({
+                type: "POST",
+                url: "{% url 'get_category' %}",
+                data: {
+                    id: object_id
+                },
+                success: function (data) {
+                    if (data.id !== undefined) {
+                        showInfo(data);
+                        $('#creater_container').modal({backdrop: 'static', keyboard: false});
+                        $("#creater_container").modal('show');
+                    }
+                    else {
+                        new PNotify({
+                            title: "資料積載エラー",
+                            text: "資料積載中にエラーが発生しました。",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                },
+                error: function () {
+                    new PNotify({
+                        title: "資料積載エラー",
+                        text: "資料積載中にエラーが発生しました。",
+                        delay: 3000,
+                        type: 'error'
+                    });
+                }
+            });
+        }
+
+        // Validation for login form
+        $("#creater_form").validate({
+                // Rules for form validation
+                rules: {
+                    category_id: {
+                        required: true
+                    },
+                    category_name: {
+                        required: true
+                    }
+                },
+
+                // Messages for form validation
+                messages: {
+                    category_id: {
+                        required: 'カテゴリーIDを入力してください。'
+                    },
+                    category_name: {
+                        required: 'カテゴリー名を入力してください。'
+                    }
+                },
+
+                // Do not change code below
+                errorPlacement: function (error, element) {
+                    if ($(element).attr("name") == "category_id") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "category_name") {
+                        error.insertAfter(element.parent());
+                    } else {
+                        $(element).parent().parent().addClass("state-error");
+                        $(error).insertAfter(element.parent().parent());
+                    }
+                },
+
+                submitHandler: function (form) {
+                    var action = $("form#creater_form").attr("action")
+                    var fd = new FormData($("form#creater_form")[0]);
+                    $.ajax({
+                        type: "POST",
+                        url: action,
+                        processData: false,
+                        contentType: false,
+                        //data : $('#formAddUser').serialize(),
+                        data: fd,
+                        success: function (result) {
+                            if (result["type"] == "S_OK") {
+                                $('#data_table').DataTable().ajax.reload();
+                                $("#creater_container").modal('hide');
+                            }
+                            else {
+                                var error_text;
+                                if (result["content"] == 'ERR_CATEGORY_CREATE') {
+                                    error_text = 'ERR_CATEGORY_CREATE。';
+                                    $("#creater_container").modal('hide');
+                                }
+                                else if (result["content"] == 'ERR_CATEGORY_UPDATE') {
+                                    error_text = 'ERR_CATEGORY_UPDATE。';
+                                    $("#creater_container").modal('hide');
+                                }
+
+                                new PNotify({
+                                    title: "登録エラー",
+                                    text: error_text,
+                                    delay: 3000,
+                                    type: 'error'
+                                });
+                            }
+                        },
+                        error: function () {
+                            new PNotify({
+                                title: "登録エラー",
+                                text: "登録中にエラーが発生しました。",
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    });
+                }
+            });
+    });
+</script>
+
+{% endblock content %}

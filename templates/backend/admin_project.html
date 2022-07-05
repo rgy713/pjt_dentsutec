@@ -1,0 +1,1343 @@
+{% extends "backend/base.html" %}
+
+{% block title %}<b>Project management</b>{% endblock %}
+
+{% block menu_name %}project{% endblock %}
+
+{% block content %}
+
+    <div id="addButton" class="admin_add_button admin_button glossy white"><p>Create</p></div>
+
+    <div class="admin_table_container pos-rel">
+        <div class="admin_table_filter pos-abs">
+            <label class="cbo_label left">Region</label>
+            <select class="cbo_filter left" id="cbo_countries">
+            </select>
+
+            <label class="cbo_label left">Industry</label>
+            <select class="cbo_filter left" id="cbo_industries">
+            </select>
+        </div>
+
+        <table id="data_table" class="display responsive nowrap table table-bordered table-hover" style="width: 100%">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 2%">NO</th>
+                    <th class="text-center" style="width: 5%">Project ID</th>
+                    <th class="text-center" style="width: 20%">Project Name</th>
+                    <th class="text-center" style="width: 10%">Client(Full Name)</th>
+                    <th class="text-center" style="width: 10%">Client(Short Name)</th>
+                    <th class="text-center">Industry</th>
+                    <th class="text-center" >Region</th>
+                    <th class="text-center" style="width: 10%">Edit</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="modal fade" id="creater_container" tabindex="-1" role="dialog" aria-labelledby="project_creater" aria-hidden="true">
+        <div class="modal-dialog modal-md" style="z-index: 1050;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="creater_title">Create Project</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="create_part" class="clearfix margin-bottom-10">
+                        <form id="creater_form" accept-charset="UTF-8" class="sky-form" action="{% url 'create_project' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <fieldset>
+                                <div class="row" id="project_number">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label fg-float">NO</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" type="text" id="number" value="" readonly/>
+                                    </div>
+                                </div>
+                                <div class="row" id="project_idx">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label fg-float">Project ID</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" type="hidden" name="id" value="" readonly/>
+                                        <input class="form-control" type="text" name="cid" value="" readonly/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label fg-float">Region</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input id="country" name="country" type="text" value="{{ user_profile.country.country_name }}" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Industry</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" id="segment" name="segment" style="height:34px;"></select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Client(Full Name)</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <label class="input">
+                                            <select class="form-control" id="client" name="client" style="height:34px;"></select>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Client(Short Name)</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="row">
+                                            <div class="col-sm-8">
+                                                <input id="company_name" name="company_name" type="text" class="form-control" readonly>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <div id="regist_client_button" class="admin_button glossy white admin_upload_button" onclick="javacript:client_editInfo();"><p>Create</p></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Category</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <label class="input">
+                                            <select class="form-control" id="category" name="category" style="height:34px;"></select>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Project Name</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="fg-line">
+                                            <input id="project_name" name="project_name" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Project Term</label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="fg-line input-append date" id="ct_start_date">
+                                            <input type="text" name="start_date" id="start_date" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="fg-line input-append date" id="ct_end_date">
+                                            <input type="text" name="end_date" id="end_date" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Outline</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="fg-line">
+                                            <textarea class="form-control" rows="2" name="outline" id="outline" style="resize:vertical"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Result</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="fg-line">
+                                            <textarea class="form-control" rows="2" name="result" id="result" style="resize:vertical"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row photo_upload_row_create">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Photo</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group fg-float">
+                                            <div class="row">
+                                                <div class="col-sm-10">
+                                                    <input id="photo_url_create" type="file" accept="image/*" multiple style="height: 36px;">
+                                                </div>
+                                            </div>
+                                            <div class="fg-line media_upload_list" id="ct_photos_create">
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row video_upload_row_create">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Video</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group fg-float">
+                                            <div class="row">
+                                                <div class="col-sm-8">
+                                                    <input id="video_url_create" name="video_url" type="text" class="form-control">
+                                                    <input id="create_video_urls" name="create_videos" type="hidden">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <div id="video_upload_create" class="admin_button glossy white admin_upload_button" onclick="javacript:add_video_create();"><p>Add</p></div>
+                                                </div>
+                                            </div>
+                                            <div class="fg-line media_upload_list" id="ct_videos_create">
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row photo_upload_row_update">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Photo</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group fg-float">
+                                            <div class="row">
+                                                <div class="col-sm-8">
+                                                    <input id="photo_url" type="file" multiple accept="image/*" style="height: 36px;">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <div id="photo_upload" class="admin_button glossy white admin_upload_button" onclick="javacript:regist_project_photo();"><p>Upload</p></div>
+                                                </div>
+                                            </div>
+                                            <div class="fg-line media_upload_list" id="ct_photos">
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row video_upload_row_update">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Video</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group fg-float">
+                                            <div class="row">
+                                                <div class="col-sm-8">
+                                                    <input id="video_url" name="video_url" type="text" class="form-control">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <div id="video_upload" class="admin_button glossy white admin_upload_button" onclick="javacript:regist_project_video();"><p>Upload</p></div>
+                                                </div>
+                                            </div>
+                                            <div class="fg-line media_upload_list" id="ct_videos">
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <footer class="center">
+                                <button id="info_update_button" type="submit" class="admin_button glossy white"><p>Update</p></button>
+                                <button id="info_delete_button" type="button" class="admin_button glossy white"><p>Delete</p></button>
+                            </footer>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="client_creater_container" tabindex="-1" role="dialog" aria-labelledby="client_creater" aria-hidden="true">
+        <div class="modal-dialog modal-md" style="z-index: 1050;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="client_creater_title">Create Client</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="client_create_part" class="clearfix margin-bottom-10">
+                        <form id="client_creater_form" accept-charset="UTF-8" class="sky-form" action="{% url 'create_client' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <fieldset>
+                                <div class="row" id="client_client_idx">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Client ID.NO</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" type="hidden" name="id" value="" readonly/>
+                                        <input class="form-control" type="text" name="cid" value="" readonly/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label fg-float">Region</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input id="client_country" name="country" type="text" value="{{ user_profile.country.country_name }}" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Client(Full Name)</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group fg-float">
+                                            <input id="client_client_name" name="client_name" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Client(Short Name)</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="select-editable">
+                                            <select class="form-control" id="client_company" name="company" style="height:34px;"></select>
+                                            <input type="text" id="client_edit_company" name="edit_company" value="" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <label class="fg-label">Comment</label>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <textarea class="form-control" rows="3" name="note" id="client_note" style="resize:none"></textarea>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <footer class="center">
+                                <button id="client_info_update" type="submit" class="admin_button glossy white"><p>Update</p></button>
+                            </footer>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    var g_country_id = {{ user_profile.country.id }}
+
+    var photo_files_create = [];
+    var create_photo_indexes = [];
+
+    $('#photo_url_create').on('change', prepareAddPhoto);
+    function prepareAddPhoto(event) {
+        var new_photo_files_create = event.target.files;
+
+        if (new_photo_files_create) {
+            var photo_readers= [];
+            var all_photo_count = photo_files_create.length;
+            var photo_count = new_photo_files_create.length;
+            var photo_reader_result_count = 0;
+
+            var photo_add = function () {
+
+                for (var j = 0; j < photo_reader_result_count; j++) {
+                    var index = all_photo_count + j;
+                    var reader_result = photo_readers[j].result;
+
+                    $("#ct_photos_create").append(
+                        '<div class="media_upload_item left pos-rel" id="new_image_' + index + '">' +
+                            '<img alt="IMAGE">' +
+                            '<div class="media_upload_item_remove pos-abs" onclick="javascript:delete_photo_create(' + index + ')"><span class="glyphicon glyphicon-remove"></span></div>' +
+                        '</div>'
+                    );
+                    $('#new_image_' + index + ' img').attr('src', reader_result);
+                    create_photo_indexes.push(index)
+                }
+            }
+
+            for (var i = 0; i < photo_count; i++) {
+                var file = new_photo_files_create[i];
+                photo_files_create.push(file);
+
+                var reader = new FileReader();
+                photo_readers.push(reader);
+
+                reader.onload = function(e) {
+                    photo_reader_result_count++;
+                    if (photo_reader_result_count == photo_count)
+                        photo_add();
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+
+    }
+
+    function delete_photo_create(index) {
+        var del_index = create_photo_indexes.indexOf(index);
+        if (del_index > -1) {
+            create_photo_indexes.splice(del_index, 1);
+            $('#new_image_' + index).remove();
+        }
+    }
+
+    function add_video_create() {
+        var video_url = $("#video_url_create").val().trim();
+        if (video_url) {
+            var create_video_urls = $("#create_video_urls").val().split(",");
+            var index = create_video_urls.length;
+            create_video_urls.push(video_url);
+
+            var image_url = video_url.replace("https://www.youtube.com/watch?v=", "")
+            image_url = image_url.replace("https://youtu.be/", "")
+            image_url = "http://i3.ytimg.com/vi/" + image_url + "/hqdefault.jpg"
+
+            $("#ct_videos_create").append(
+                '<div class="media_upload_item left pos-rel" id="new_video_' + index + '">' +
+                    '<img src="' + image_url + '" alt="IMAGE">' +
+                    '<div class="media_upload_item_remove pos-abs" onclick="javascript:delete_video_create(' + index + ')"><span class="glyphicon glyphicon-remove"></span></div>' +
+                '</div>'
+            )
+
+            $("#video_url_create").val("");
+            $("#create_video_urls").val(create_video_urls.join(","));
+        }
+    }
+
+    function delete_video_create(index) {
+        var create_video_urls = $("#create_video_urls").val().split(",");
+        create_video_urls.splice(index, 1);
+        $("#create_video_urls").val(create_video_urls.join(","));
+        $('#new_video_' + index).remove();
+    }
+
+    var photo_files_update;
+    $('#photo_url').on('change', prepareUploadPhoto);
+    function prepareUploadPhoto(event) {
+        photo_files_update = event.target.files;
+    }
+
+
+    function showInfo(data) {
+        var project_idx = 0,
+            project_number = 1,
+            project_name = "",
+            country_name = '{{ user_profile.country.country_name }}',
+            segment = $("#segment").val(),
+            client = $("#client").val(),
+            company_name = admin_client_list[client];
+            start_date = "",
+            end_date = "",
+            category = "1",
+            outline = "",
+            result = "";
+
+        project_idx = data.id;
+        if (!data.create) {
+            project_number = data.number;
+            project_name = data.project_name;
+            g_country_id = data.country_id;
+            country_name = data.country_name;
+            segment = data.segment;
+            client = data.client;
+            company_name = data.company_name;
+            start_date = data.start_date;
+            end_date = data.end_date;
+            category = data.category;
+            outline = data.outline;
+            result = data.result;
+        }
+
+        var $form = $("form#creater_form"),
+            path_action = $form.attr("action");
+
+        $form.find('em').remove();
+        $('.state-error').removeClass("state-error");
+        $('.state-success').removeClass("state-success");
+        $('.invalid').removeClass("invalid");
+        $('.valid').removeClass("valid");
+
+        if (!data.create) {
+            $form.attr("action", path_action.replace("create", "update"));
+            $("#creater_container").find(".modal-title").html('Update Project');
+            $("[name=id]").val(project_idx);
+            $("[name=cid]").val("P" + project_idx);
+            $("#info_update_button p").html("Update");
+            $("#info_delete_button").show();
+
+            $("#project_number").show();
+            $("#project_idx").show();
+
+            $(".photo_upload_row_create").hide();
+            $(".video_upload_row_create").hide();
+            $(".photo_upload_row_update").show();
+            $(".video_upload_row_update").show();
+
+            list_project_photo();
+            list_project_video();
+        } else {
+            $form.attr("action", path_action.replace("update", "create"));
+            $("#creater_container").find(".modal-title").html('Create Project');
+            $("[name=id]").val(project_idx);
+            $("[name=cid]").val("P" + project_idx);
+            $("#info_update_button p").html("Create");
+            $("#info_delete_button").hide();
+
+            $("#project_number").hide();
+            $("#project_idx").show();
+
+
+            $(".photo_upload_row_create").show();
+            $(".video_upload_row_create").show();
+            $(".photo_upload_row_update").hide();
+            $(".video_upload_row_update").hide();
+        }
+
+        $("#number").val(project_number);
+        $("#project_name").val(project_name);
+        $("#country").val(country_name);
+        $("#segment").val(segment);
+        $("#client").val(client);
+        $("#company_name").val(company_name);
+        $("#start_date").val(start_date);
+        $("#end_date").val(end_date);
+        $("#category").val(category);
+        $("#outline").val(outline);
+        $("#result").val(result);
+
+        $("#ct_photos_create").empty();
+        $("#ct_videos_create").empty();
+
+        $("#ct_photos").empty();
+        $("#ct_videos").empty();
+
+        photo_files_create = [];
+        create_photo_indexes = [];
+
+        var input_photo_url_create = $("#photo_url_create");
+        input_photo_url_create.replaceWith(input_photo_url_create.val('').clone(true));
+        $("#create_video_urls").val("");
+        $("#video_url_create").val("");
+
+        var input_photo_url = $("#photo_url");
+        input_photo_url.replaceWith(input_photo_url.val('').clone(true));
+        $("#video_url").val("");
+
+        list_client(client, g_country_id);
+    }
+
+    function list_project_photo() {
+        $("#ct_photos").empty();
+        var project_idx = $("[name=id]").val();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_media' %}",
+            data: {
+                project_idx: project_idx,
+                type: 0
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    media_list = result["content"];
+                    media_list.forEach(function (media, number) {
+                        var image_url = media.type == 2 ? media.thumb :
+                            media.type == 1 ? media.url : '{{ MEDIA_URL }}images/' + media.url;
+                        $("#ct_photos").append(
+                            '<div class="media_upload_item left pos-rel">' +
+                                '<img src="' + image_url + '" alt="IMAGE">' +
+                                '<div class="media_upload_item_remove pos-abs" onclick="javascript:delete_photo(' + media.id + ')"><span class="glyphicon glyphicon-remove"></span></div>' +
+                            '</div>'
+                        )
+                    });
+                }
+            }
+        });
+    }
+
+    function delete_photo(media_idx) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'delete_photo' %}",
+            data: {
+                id: media_idx
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                list_project_photo();
+            }
+        });
+    }
+
+
+    function regist_project_photo() {
+        if (photo_files_update.length == 0)
+            return;
+
+        var project_idx = $("[name=id]").val();
+
+        var formData = new FormData();
+        formData.append("project", project_idx);
+
+        for (var i = 0; i < photo_files_update.length; i++) {
+            formData.append("file", photo_files_update[i]);
+        }
+
+        photo_files_update = []
+        $.ajax({
+            type: "POST",
+            url: "{% url 'regist_photo' %}",
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                var input = $("#photo_url");
+                input.replaceWith(input.val('').clone(true));
+
+                if (result["type"] == 'S_OK') {
+                    list_project_photo()
+                }
+
+            }
+        });
+    }
+
+    function list_project_video() {
+        $("#ct_videos").empty();
+        var project_idx = $("[name=id]").val();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_media' %}",
+            data: {
+                project_idx: project_idx,
+                type: 2
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    media_list = result["content"];
+                    media_list.forEach(function (media, number) {
+                        var image_url = media.type == 2 ? media.thumb :
+                            media.type == 1 ? media.url : '{{ MEDIA_URL }}images/' + media.url;
+                        $("#ct_videos").append(
+                            '<div class="media_upload_item left pos-rel">' +
+                                '<img src="' + image_url + '" alt="IMAGE">' +
+                                '<div class="media_upload_item_remove pos-abs" onclick="javascript:delete_video(' + media.id + ')"><span class="glyphicon glyphicon-remove"></span></div>' +
+                            '</div>'
+                        )
+                    });
+                }
+            }
+        });
+    }
+
+    function delete_video(media_idx) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'delete_video' %}",
+            data: {
+                id: media_idx
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                list_project_video();
+            }
+        });
+    }
+
+    function regist_project_video() {
+        var video_url = $("#video_url").val()
+        if (video_url.trim() == "")
+            return;
+
+        var project_idx = $("[name=id]").val();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'regist_video' %}",
+            data: {
+                project: project_idx,
+                url: video_url
+            },
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                $("#video_url").val("");
+
+                if (result["type"] == 'S_OK') {
+                    list_project_video()
+                }
+
+            }
+        });
+    }
+
+    function list_client(client_idx, country_idx) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ws_list_client' %}",
+            data: {
+                country: country_idx
+            },
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var client_list = result["content"];
+
+                    $('#client').empty();
+                    client_list.forEach(function (value, index) {
+                        $('#client').append('<option value="' + value.id + '">' + value.client_name + '</option>');
+                        admin_client_list[value.id] = value.company;
+                    })
+
+                    $("#client").val(client_idx);
+                    $("#company_name").val(admin_client_list[$("#client").val()]);
+                }
+            }
+        });
+    }
+
+    function client_editInfo() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'create_client_id' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var data = {
+                        create: true,
+                        id: result["content"]
+                    };
+
+                    $("#creater_container").modal('hide');
+                    client_showInfo(data);
+                    $('#client_creater_container').modal({backdrop: 'static', keyboard: false});
+                    $("#client_creater_container").modal('show');
+                }
+            }
+        });
+
+    }
+
+    function client_showInfo(data) {
+        var client_idx = 0,
+            client_name = "",
+            company = "",
+            note = "";
+
+        client_idx = data.id;
+        if (!data.create) {
+            client_name = data.client_name;
+            company = data.company;
+            note = data.note;
+        }
+
+        var $form = $("form#client_creater_form"),
+            path_action = $form.attr("action");
+
+        $form.find('em').remove();
+        $('#client_creater_form .state-error').removeClass("state-error");
+        $('#client_creater_form .state-success').removeClass("state-success");
+        $('#client_creater_form .invalid').removeClass("invalid");
+        $('#client_creater_form .valid').removeClass("valid");
+
+        if (!data.create) {
+            $form.attr("action", path_action.replace("create", "update"));
+            $("#client_creater_title").html('Update Client');
+            $("#client_creater_container [name=id]").val(client_idx);
+            $("#client_creater_container [name=cid]").val("C" + client_idx);
+            $("#client_info_update p").html("Update");
+
+            $("#client_client_idx").show();
+        } else {
+            $form.attr("action", path_action.replace("update", "create"));
+            $("#client_creater_title").html('Create Client');
+            $("#client_creater_container [name=id]").val(client_idx);
+            $("#client_creater_container [name=cid]").val("C" + client_idx);
+            $("#client_info_update p").html("Create");
+
+            $("#client_client_idx").show();
+        }
+
+
+        $("#client_client_name").val(client_name);
+        $("#client_note").val(note);
+
+        client_get_list_company(company);
+    }
+
+    function client_get_list_company(company_id) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'list_company' %}",
+            data: {
+                //segment: $("#client_segment").val()
+            },
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var company_list = result["content"];
+
+                    $('#client_company').empty();
+                    $('#client_company').append('<option value="">..Create</option>');
+                    company_list.forEach(function (value, index) {
+                        $('#client_company').append('<option value="' + value.id + '">' + value.company_name + '</option>');
+                    })
+
+                    $('#client_company').val(company_id);
+                    $("#client_edit_company").val($("#client_company").val() ? $("#client_company option:selected").text() : "");
+                }
+            }
+        });
+    }
+
+    var admin_data_table;
+    var admin_client_list = {};
+
+
+    $(document).ready(function() {
+        $("#client_creater_container").on("hidden.bs.modal", function () {
+            $('#creater_container').modal({backdrop: 'static', keyboard: false});
+            $("#creater_container").modal('show');
+        });
+
+        $("#start_date").datepicker({
+            format: 'yyyy-mm-dd',
+            prevText: '<span class="glyphicon glyphicon-menu-left"></span>',
+            nextText: '<span class="glyphicon glyphicon-menu-right"></span>'
+        });
+        $("#end_date").datepicker({
+            format: 'yyyy-mm-dd',
+            prevText: '<span class="glyphicon glyphicon-menu-left"></span>',
+            nextText: '<span class="glyphicon glyphicon-menu-right"></span>'
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'list_country' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var country_list = result["content"];
+
+                    $('#cbo_countries').empty();
+                    $('#cbo_countries').append('<option value=""> </option>');
+                    country_list.forEach(function (value, index) {
+                        $('#cbo_countries').append('<option value="' + value.id + '">' + value.country_name + '</option>');
+                    })
+                }
+            }
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'list_segment' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var segment_list = result["content"];
+
+                    $('#cbo_industries').empty();
+                    $('#cbo_industries').append('<option value=""> </option>');
+                    $('#segment').empty();
+                    segment_list.forEach(function (value, index) {
+                        $('#cbo_industries').append('<option value="' + value.id + '">' + value.segment_name + '</option>');
+                        $('#segment').append('<option value="' + value.id + '">' + value.segment_name + '</option>');
+                    })
+                }
+            }
+        });
+
+        $("#client").on('change', function() {
+           $("#company_name").val(admin_client_list[$(this).val()]);
+        })
+
+        $("#client_company").on('change', function() {
+           $("#client_edit_company").val($("#client_company").val() ? $("#client_company option:selected").text() : "");
+        })
+
+
+
+        $.ajax({
+            type: "GET",
+            url: "{% url 'list_category' %}",
+            success: function (result) {
+                if (result["type"] == "S_OK") {
+                    var category_list = result["content"];
+
+                    $('#category').empty();
+                    category_list.forEach(function (value, index) {
+                        $('#category').append('<option value="' + value.id + '">' + value.category_name + '</option>');
+                    })
+                }
+            }
+        });
+
+        admin_data_table = $('#data_table').DataTable({
+            processing: true,
+            serverSide: true,
+            pageLength: 10,
+            ajax: {
+                "url": "{% url 'list_project' %}",
+                "type": "POST"
+            },
+            columns: [
+                {name: "number", data: "number", defaultContent: "", className: "dt-center", orderable: false},
+                {name: "project_id", data: "project_id", defaultContent: "", className: "dt-center"},
+                {
+                    name: "project_name", data: "project_name", defaultContent: "", className: "dt-center",
+                    render: function (data, type, row, meta) {
+                        return "<div style='white-space:normal;word-break: break-all;'>" + data + "</div>";
+                    }
+                },
+                {
+                    name: "client__client_name", data: "client__client_name", defaultContent: "", className: "dt-center",
+                    render: function (data, type, row, meta) {
+                        return "<div style='white-space:normal;word-break: break-all;'>" + data + "</div>";
+                    }
+                },
+                {
+                    name: "company_name", data: "company_name", defaultContent: "", className: "dt-center",
+                    render: function (data, type, row, meta) {
+                        return "<div style='white-space:normal;word-break: break-all;'>" + data + "</div>";
+                    }
+                },
+                {name: "segment", data: "segment", defaultContent: "", className: "dt-center"},
+                {name: "country", data: "country", defaultContent: "", className: "dt-center"},
+                //{name: "start_end_date", data: "start_end_date", defaultContent: "", className: "dt-center", orderable: false},
+                //{name: "category__category_name", data: "category__category_name", defaultContent: "", className: "dt-center"},
+                /*
+                {
+                    name: "outline", data: "outline", defaultContent: "", className: "dt-center", orderable: false,
+                    render: function (data, type, row, meta) {
+                        return "<div style='white-space:normal;'>" + data + "</div>";
+                    }
+                },
+                {
+                    name: "result", data: "result", defaultContent: "", className: "dt-center", orderable: false,
+                    render: function (data, type, row, meta) {
+                        return "<div style='white-space:normal;'>" + data + "</div>";
+                    }
+                },
+                {
+                    name: "status", data: "status", defaultContent: "", className: "dt-center", orderable: false,
+                    render: function (data, type, row, meta) {
+                        var html =
+                            '<button name="statusOffButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn ' + (data == 0 ? 'btn-default' : 'btn-success') + '" onclick="setStatus(' + row.id + ', 1, ' + data + ');">' +
+                            '掲 載' +
+                            '</button>&nbsp;&nbsp;&nbsp;' +
+                            '<button name="statusOnButton" data-id="' + row.id + '" style="padding: 5px 10px 5px 10px;" class="btn ' + (data == 1 ? 'btn-default' : 'btn-warning') + '" onclick="setStatus(' + row.id + ', 0, ' + data + ');">' +
+                            '非掲載' +
+                            '</button>';
+
+                        return html;
+                    }
+                },
+                */
+                {
+                    name: "edit",
+                    data: "editable",
+                    defaultContent: "",
+                    className: "dt-center",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        if (data) {
+                            var html = '<div class="admin_button glossy white admin_edit_button" onclick="editInfo(' + row.id + ',' + row.number + ');"><p>Edit</p></div>';
+
+                            return html;
+                        }
+                        else {
+                            return "";
+                        }
+
+                    }
+                }
+            ]
+        });
+
+        $("#cbo_industries").on('change', function() {
+           admin_data_table.column(5).search($(this).val()).draw();
+        })
+        $("#cbo_countries").on('change', function() {
+           admin_data_table.column(6).search($(this).val()).draw();
+        })
+
+        $("#addButton").on("click", function () {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'create_project_id' %}",
+                success: function (result) {
+                    if (result["type"] == "S_OK") {
+                        var data = {
+                            create: true,
+                            id: result["content"]
+                        };
+
+                        showInfo(data);
+                        $('#creater_container').modal({backdrop: 'static', keyboard: false});
+                        $("#creater_container").modal('show');
+                    }
+                }
+            });
+
+        });
+
+        $("#info_delete_button").on("click", function (e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: "POST",
+                url: "{% url 'delete_project' %}",
+                data: {
+                    id: $("[name=id]").val()
+                },
+                complete: function () {
+                    $('#data_table').DataTable().ajax.reload();
+                    $("#creater_container").modal('hide');
+                }
+            });
+        });
+
+        setStatus = function (p_obj_id, p_status, old_status) {
+            if (old_status != p_status) {
+                object_id = p_obj_id;
+                object_status = p_status;
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'update_project' %}",
+                    data: {
+                        id: object_id,
+                        status: object_status
+                    },
+                    success: function (result) {
+                        if (result["type"] == "S_OK") {
+                            $('#data_table').DataTable().ajax.reload();
+                        }
+                        else {
+                            var error_text;
+                            if (result["content"] == 'ERR_PROJECT_CREATE') {
+                                error_text = 'ERR_PROJECT_CREATE。';
+                                $("#creater_container").modal('hide');
+                            }
+
+                            new PNotify({
+                                title: "Error",
+                                text: error_text,
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    },
+                    error: function () {
+                        new PNotify({
+                            title: "Error",
+                            text: "Unknown error.",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                });
+            }
+        }
+
+        editInfo = function (p_obj_id, p_number) {
+            object_id = p_obj_id;
+            $.ajax({
+                type: "POST",
+                url: "{% url 'get_project' %}",
+                data: {
+                    id: object_id
+                },
+                success: function (data) {
+                    if (data.id !== undefined) {
+                        if (p_number)
+                            data.number = p_number;
+
+                        showInfo(data);
+                        $('#creater_container').modal({backdrop: 'static', keyboard: false});
+                        $("#creater_container").modal('show');
+                    }
+                    else {
+                        new PNotify({
+                            title: "Error",
+                            text: "Unknown error.",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                },
+                error: function () {
+                    new PNotify({
+                        title: "Error",
+                        text: "Unknown error.",
+                        delay: 3000,
+                        type: 'error'
+                    });
+                }
+            });
+        }
+
+        // Validation for login form
+        $("#creater_form").validate({
+                // Rules for form validation
+                rules: {
+                    project_name: {
+                        required: true
+                    },
+                    client: {
+                        required: true
+                    },
+                    start_date: {
+                        required: true
+                    },
+                    end_date: {
+                        required: true
+                    },
+                    country: {
+                        required: true
+                    },
+                    category: {
+                        required: true
+                    },
+                    outline: {
+                        required: true
+                    },
+                    result: {
+                        required: true
+                    }
+                },
+
+                // Messages for form validation
+                messages: {
+                    project_name: {
+                        required: 'Project name is required.'
+                    },
+                    client: {
+                        required: 'Client is required.'
+                    },
+                    start_date: {
+                        required: 'Start date is required.'
+                    },
+                    end_date: {
+                        required: 'End date is required.'
+                    },
+                    country: {
+                        required: 'Country is required.'
+                    },
+                    category: {
+                        required: 'Category is required.'
+                    },
+                    outline: {
+                        required: 'Outline is required.'
+                    },
+                    result: {
+                        required: 'Result is required.'
+                    }
+                },
+
+                // Do not change code below
+                errorPlacement: function (error, element) {
+                    if ($(element).attr("name") == "project_name") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "client") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "start_date") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "end_date") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "country") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "category") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "outline") {
+                        error.insertAfter(element.parent());
+                    } else if ($(element).attr("name") == "result") {
+                        error.insertAfter(element.parent());
+                    }
+                    else {
+                        $(element).parent().parent().addClass("state-error");
+                        $(error).insertAfter(element.parent().parent());
+                    }
+                },
+
+                submitHandler: function (form) {
+                    var input_photo_url_create = $("#photo_url_create");
+                    input_photo_url_create.replaceWith(input_photo_url_create.val('').clone(true));
+
+                    var input_photo_url = $("#photo_url");
+                    input_photo_url.replaceWith(input_photo_url.val('').clone(true));
+
+                    var action = $("form#creater_form").attr("action")
+                    var fd = new FormData($("form#creater_form")[0]);
+
+                    if (action.indexOf('create') > -1) {
+                        create_photo_indexes.forEach(function (value) {
+                            fd.append("file", photo_files_create[value]);
+                        });
+
+                        photo_files_create = [];
+                        create_photo_indexes = [];
+                    }
+
+                    $.ajax({
+                        type: "POST",
+                        url: action,
+                        processData: false,
+                        contentType: false,
+                        //data : $('#formAddUser').serialize(),
+                        data: fd,
+                        success: function (result) {
+                            if (result["type"] == "S_OK") {
+                                $('#data_table').DataTable().ajax.reload();
+                                $("#creater_container").modal('hide');
+                            }
+                            else {
+                                var error_text;
+                                if (result["content"] == 'ERR_PROJECT_CREATE') {
+                                    error_text = 'ERR_PROJECT_CREATE。';
+                                    $("#creater_container").modal('hide');
+                                }
+                                else if (result["content"] == 'ERR_PROJECT_UPDATE') {
+                                    error_text = 'ERR_PROJECT_UPDATE。';
+                                    $("#creater_container").modal('hide');
+                                }
+
+
+                                new PNotify({
+                                    title: "Error",
+                                    text: error_text,
+                                    delay: 3000,
+                                    type: 'error'
+                                });
+                            }
+                        },
+                        error: function () {
+                            new PNotify({
+                                title: "Error",
+                                text: "Unknown error",
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    });
+                }
+            });
+
+        // Validation for login form
+        $("#client_creater_form").validate({
+            // Rules for form validation
+            rules: {
+                client_name: {
+                    required: true
+                },
+                edit_company: {
+                    required: true
+                }
+            },
+
+            // Messages for form validation
+            messages: {
+                client_name: {
+                    required: 'Client Full Name is required.'
+                },
+                edit_company: {
+                    required: 'Client Short Name is required.'
+                }
+            },
+
+            // Do not change code below
+            errorPlacement: function (error, element) {
+                if ($(element).attr("name") == "client_name") {
+                    error.insertAfter(element.parent());
+                } else if ($(element).attr("name") == "edit_company") {
+                    error.insertAfter(element.parent());
+                }
+                else {
+                    $(element).parent().parent().addClass("state-error");
+                    $(error).insertAfter(element.parent().parent());
+                }
+            },
+
+            submitHandler: function (form) {
+                var action = $("form#client_creater_form").attr("action")
+                var fd = new FormData($("form#client_creater_form")[0]);
+                $.ajax({
+                    type: "POST",
+                    url: action,
+                    processData: false,
+                    contentType: false,
+                    //data : $('#formAddUser').serialize(),
+                    data: fd,
+                    success: function (result) {
+                        if (result["type"] == "S_OK") {
+                            list_client($("#client").val(), g_country_id);
+                            $("#client_creater_container").modal('hide');
+                        }
+                        else {
+                            var error_text;
+                            if (result["content"] == 'ERR_CLIENT_CREATE') {
+                                error_text = 'ERR_CLIENT_CREATE。';
+                                $("#creater_container").modal('hide');
+                            }
+                            else if (result["content"] == 'ERR_CLIENT_UPDATE') {
+                                error_text = 'ERR_CLIENT_UPDATE。';
+                                $("#creater_container").modal('hide');
+                            }
+
+
+                            new PNotify({
+                                title: "Error",
+                                text: error_text,
+                                delay: 3000,
+                                type: 'error'
+                            });
+                        }
+                    },
+                    error: function () {
+                        new PNotify({
+                            title: "Error",
+                            text: "Unknown error.",
+                            delay: 3000,
+                            type: 'error'
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+
+</script>
+
+{% endblock content %}

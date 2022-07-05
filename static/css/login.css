@@ -1,0 +1,142 @@
+html, body {
+    background-color: #f5f5f8;
+    font-size: 18px;
+    overflow-y: scroll;
+}
+
+.dy-container {
+    width: 100%;
+    margin: auto;
+    margin-top: 80px;
+}
+
+.dy-contents {
+    width: 100%;
+    padding: 20px;
+}
+
+.dy-container-m {
+    width: 100%;
+    margin: auto;
+    margin-top: 80px;
+}
+
+.dy-row {
+    width: 100%;
+    margin-top: 40px;
+}
+
+.dy-row1 {
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: #c1c1c1;
+}
+
+::-moz-placeholder { /* Firefox 19+ */
+    color: #c1c1c1;
+}
+
+:-ms-input-placeholder { /* IE 10+ */
+    color: #c1c1c1;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+    color: #c1c1c1;
+}
+
+.dy-input {
+    width: 100%;
+    height: 60px;
+    padding: 10px;
+    border-color: #e5e5e5;
+    border-style: solid;
+    border-width: 1.5px;
+}
+
+.dy-btn {
+    width: 100%;
+    height: 50px;
+    color: #FFF;
+    border-radius: 5px;
+    font-size: 14px;
+    line-height: 2.5;
+    text-align: center;
+    cursor: pointer;
+    border-style: inherit;
+}
+
+.dy-btn:active {
+    opacity: 0.8;
+}
+
+.dy-btn:hover {
+    opacity: 0.8;
+}
+
+.dy-col-blue {
+    background-color: #0076d7;
+}
+
+.dy-col-yellow {
+    background-color: #ffb747;
+    font-size: 0.85em;
+}
+
+.dy-loader {
+    width: 100%;
+    height: auto;
+    margin-top: 20px;
+    color: #0076d7;
+    font-size: 14px;
+    text-align: center;
+    display: none;
+}
+
+.dy-nav {
+    position: absolute;
+    font-size: 14px;
+    top: 10px;
+    right: 20px;
+}
+
+.dy-errer-msg {
+    color: #FF0000;
+}
+
+.dy-input-label {
+    float: left;
+}
+
+#dyid_change_email {
+    margin-top: 1em;
+    cursor: pointer;
+}
+
+@media (min-width: 576px) {
+    .dy-container {
+        width: 600px;
+        margin: auto;
+        margin-top: 200px;
+    }
+
+    .dy-contents {
+        width: 100%;
+        padding: 0;
+    }
+
+    .dy-container-m {
+        width: 400px;
+        margin: auto;
+        margin-top: 200px;
+    }
+
+    .dy-btn {
+        width: 300px;
+        margin-left: 150px;
+        height: 50px;
+        font-size: 14px;
+    }
+}

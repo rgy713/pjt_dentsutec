@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DENTSU TEC</title>
+
+    <link href="{% static 'css/frontend.css' %}" rel="stylesheet">
+</head>
+<body>
+<div class="main-content">
+    <div class="top_logo center">
+        <a href="{% url 'index' %}">DENTSU TEC</a>
+    </div>
+
+    <div class="top_label">
+        <div class="left">Category</div>
+        <div class="right">PROMO TEC ASIA NETWORK</div>
+    </div>
+
+    <div id="category_contents">
+
+
+    </div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: "GET",
+            url: '{% url 'ws_list_category' %}',
+            timeout: 2000,
+            beforeSend: function () {
+
+            },
+            complete: function () {
+
+            },
+            success: function (result) {
+                if (result["type"] == 'S_OK') {
+                    var category_list = result["content"];
+                    category_list.forEach(function (category, number) {
+                        var category_name = category.category_name;
+                        var category_idx = category.id;
+                        var container_id = 'category_list_container_' + category_name;
+
+
+                        $("#category_contents").append(
+                            '<div class="category_list_container left" id="' + container_id + '">' +
+                            '<div class="category_container_label center">' + category_name + '</div>' +
+                            '<div class="category_showcase_list_container">' +
+                            '</div>' +
+                            '</div>'
+                        );
+
+                        $.ajax({
+                            type: "POST",
+                            url: '{% url 'ws_list_project' %}',
+                            data: {
+                                'category_idx': category_idx, 'length': 2
+                            },
+                            timeout: 2000,
+                            beforeSend: function () {
+
+                            },
+                            complete: function () {
+
+                            },
+                            success: function (result) {
+                                if (result["type"] == 'S_OK') {
+                                    var project_list = result["content"];
+                                    project_list.forEach(function (project, number) {
+                                        $("#" + container_id + " .category_showcase_list_container").append(
+                                            '<a href="{% url 'detail' %}?id=' + project.id + '">' +
+                                            '<div class="category_showcase_list_item">' +
+                                            '<div class="category_showcase_list_item_mark left">▶</div>' +
+                                            '<div class="category_showcase_list_item_content left">' +
+                                            '<div class="category_showcase_list_item_title">' + project.project_name + '</div>' +
+                                            '<div class="category_showcase_list_item_detail">' + project.client + '</div>' +
+                                            '</div>' +
+                                            '</div>' +
+                                            '</a>'
+                                        );
+                                    });
+                                }
+
+                            }
+                        });
+
+                    });
+                }
+
+            }
+        });
+    });
+</script>
+</body>
+</html>

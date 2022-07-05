@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <title>DENTSU TEC</title>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link href="{% static 'css/frontend.css' %}" rel="stylesheet">
+
+    <script src="{% static 'js/jquery-1.12.3.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/md5.min.js' %}"></script>
+</head>
+<body>
+
+
+    <div class="logo_container">
+        <div class="logo_container_content">
+            <div class="logo_ico"><img src="{% static 'images/logo.png' %}"></div>
+        </div>
+    </div>
+
+    <div class="logo_label_container">
+        <div class="logo_label_content center pos-rel">
+            <div>PROMO TEC ASIA NETWORK</div>
+        </div>
+    </div>
+
+    <div class="login_label center">LOGIN</div>
+
+    <div id="login_form_container">
+        <form id="id-login-form" method="POST" action="{% url 'login' %}" class="sign-in-form">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="dy-errer-msg center">Login Failed.</div><br/>
+            {% endif %}
+            <div id="login_id_input_container" class="login_input_container">
+                <img class="login_label_icon left" src="{% static 'images/login_id.png' %}">
+                <label id="login_id_label" class="login_input_label left" for="{{ form.username.id_for_label }}">ID</label>
+                <input class="form-control login_input" id="{{ form.username.id_for_label }}" maxlength="15"
+                       name="{{ form.username.html_name }}" type="text"/>
+            </div>
+
+            <div id="login_pwd_input_container" class="login_input_container clear">
+                <img class="login_label_icon left" src="{% static 'images/login_password.png' %}">
+                <label id="login_pwd_label"  class="login_input_label left" for="{{ form.password.id_for_label }}">Password</label>
+                <input class="form-control login_input" id="{{ form.password.id_for_label }}" maxlength="120"
+                       name="{{ form.password.html_name }}" type="password"/>
+            </div>
+
+            <div class="login_controls">
+                <a href="javascript:void(0);" class="submit_button left right_margin" onclick="javascript:document.getElementById('id-login-form').submit();">login</a>
+{#                <a href="javascript:void(0);" class="submit_button left right_margin" onclick="javascript:document.getElementById('next_url').value='{% url 'setting' %}'; document.getElementById('id-login-form').submit(); ">setting</a>#}
+                <a href="javascript:void(0);" class="submit_button left" onclick="javascript:document.getElementById('id-login-form').action='{% url 'admin_login' %}'; document.getElementById('id-login-form').submit();">admin</a>
+            </div>
+
+            <input type="hidden" id="next_url" name="next" value="">
+        </form>
+    </div>
+
+    <div id="test_panel" class="pos-fix center" style="z-index: 1; width: 100%; height: 100%; left: 0; top: 0; background-color: white;">
+        <input type="text" id="test_input" style="width: 300px;  height: 40px; margin-top: 200px;">
+        <button type="button" onclick="javascript: test();" style="height: 40px; width: 50px;" >  OK  </button>
+    </div>
+
+    <script>
+        localStorage.removeItem("filter_data");
+
+        function test() {
+            if (md5($("#test_input").val()) == '044c3027c1bfd773fc90762db80bf8cc')
+                    $("#test_panel").hide();
+        }
+
+        var input = document.getElementById("test_input");
+        input.addEventListener("keyup", function(event) {
+            event.preventDefault();
+            if (event.keyCode === 13) {
+                test();
+            }
+        });
+    </script>
+
+</body>
+</html>
